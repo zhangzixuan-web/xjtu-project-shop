@@ -191,5 +191,28 @@ public class OrderController {
         }
         return Result.success(page);
     }
+    /**
+     * 后台管理员发货接口
+     * @param id 订单ID
+     * @param params 请求体，应包含 company 和 number
+     * @return
+     */
+    @PostMapping("/{id}/ship")
+    public Result ship(@PathVariable Long id, @RequestBody Map<String, String> params) {
+        String company = params.get("company");
+        String number = params.get("number");
+        orderService.shipOrder(id, company, number);
+        return Result.success(); // 假设你有统一的返回对象 Result
+    }
 
+    /**
+     * 前台用户查询物流接口
+     * @param id 订单ID
+     * @return 物流轨迹的JSON字符串
+     */
+    @GetMapping("/{id}/tracking")
+    public String getTracking(@PathVariable Long id) {
+        return orderService.getOrderTrackingDetails(id);
+    }
 }
+

@@ -4,7 +4,6 @@ import com.example.entity.Cart;
 import com.example.entity.Goods;
 import com.example.entity.OrderGoods;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.example.mapper.GoodsMapper;
 import com.example.mapper.OrderGoodsMapper;
 import org.springframework.stereotype.Service;
 
@@ -39,4 +38,5 @@ public class OrderGoodsService extends ServiceImpl<OrderGoodsMapper, OrderGoods>
         }
         return carts;
     }
+
 }
