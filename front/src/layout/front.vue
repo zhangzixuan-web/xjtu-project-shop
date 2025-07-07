@@ -30,7 +30,6 @@
               <div style="width: 100px;height: 20px"></div>
             </div>
           </el-col>
-
           <el-col :span="4">
             <div style="text-align: right; padding-right: 10px" v-if="user.id">
               <el-dropdown style="float: right;" @command="handleCommand">
