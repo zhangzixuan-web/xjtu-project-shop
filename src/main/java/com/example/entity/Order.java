@@ -58,6 +58,15 @@ public class Order extends Model<Order> {
       * 创建时间 
       */
     private String createTime;
+    // === 新增的字段 ===
+
+    private String shippingCompany;
+
+
+    private String shippingNumber;
+
+
+    private String shippingDetails;
 
     @TableField(exist = false)
     private String carts;

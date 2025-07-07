@@ -41,24 +41,40 @@
             </template>
           </el-table-column>
           <el-table-column label="状态" prop="state"></el-table-column>
-
+          <!-- 这是你要【粘贴上去】的正确代码块 -->
           <el-table-column
               fixed="right"
               label="操作"
-          >
+              width="150"> <!-- 我们给了它一个合适的宽度 -->
             <template slot-scope="scope">
-              <el-button type="primary" @click="pay(scope.row.id)" v-if="scope.row.state === '待付款'">付款</el-button>
-              <el-button type="danger" @click="cancel(scope.row.id)" v-if="scope.row.state === '待付款'">取消</el-button>
-              <el-button type="primary" @click="confirm(scope.row.id)" v-if="scope.row.state === '待收货'">确认收货</el-button>
-              <el-popconfirm
-                  v-if="scope.row.state === '已取消' || scope.row.state === '已完成'"
-                  @confirm="del(scope.row.id)"
-                  title="确定删除？"
-              >
-                <el-button type="danger" icon="el-icon-delete" circle slot="reference" style="margin-left: 10px"></el-button>
-              </el-popconfirm>
+              <!-- 用一个div把所有按钮包起来，并设置样式 -->
+              <div style="display: flex; flex-direction: column; gap: 5px; align-items: flex-start;">
+
+                <!-- 待付款状态的按钮 -->
+                <div v-if="scope.row.state === '待付款'">
+                  <el-button type="primary" size="mini" @click="pay(scope.row.id)">付款</el-button>
+                  <el-button type="danger" size="mini" @click="cancel(scope.row.id)">取消</el-button>
+                </div>
+
+                <!-- 待收货状态的按钮 -->
+                <div v-if="scope.row.state === '待收货'">
+                  <el-button type="warning" size="mini" @click="showLogistics(scope.row.id)">查看物流</el-button>
+                  <el-button type="primary" size="mini" @click="confirm(scope.row.id)" style="margin-top: 5px;">确认收货</el-button>
+                </div>
+
+                <!-- 已完成或已取消状态的按钮 -->
+                <el-popconfirm
+                    v-if="scope.row.state === '已取消' || scope.row.state === '已完成'"
+                    @confirm="del(scope.row.id)"
+                    title="确定删除？"
+                >
+                  <el-button type="danger" size="mini" icon="el-icon-delete" circle slot="reference"></el-button>
+                </el-popconfirm>
+
+              </div>
             </template>
           </el-table-column>
+
         </el-table>
         <div style="margin-top: 10px">
           <el-pagination
@@ -122,6 +138,8 @@
             <template slot-scope="scope">
               <el-button type="primary" @click="pay(scope.row.id)" v-if="scope.row.state === '待付款'">付款</el-button>
               <el-button type="danger" @click="cancel(scope.row.id)" v-if="scope.row.state === '待付款'">取消</el-button>
+              <!-- 【修改点1】新增查看物流按钮 -->
+              <el-button type="warning" size="mini" @click="showLogistics(scope.row.id)" v-if="scope.row.state === '待收货' || scope.row.state === '已发货'">查看物流</el-button>
               <el-button type="primary" @click="confirm(scope.row.id)" v-if="scope.row.state === '待收货'">确认收货</el-button>
               <el-popconfirm
                   v-if="scope.row.state === '已取消' || scope.row.state === '已完成'"
@@ -271,15 +289,23 @@
         <el-button type="primary" @click="comment">确 定</el-button>
       </div>
     </el-dialog>
-
+    <!-- 【修改点2】新增物流对话框 -->
+    <el-dialog title="物流详情" :visible.sync="logisticsVisible" width="60%">
+      <!-- 确保 LogisticsMap 组件接收到数据后再渲染，避免地图初始化失败 -->
+      <LogisticsMap v-if="logisticsVisible && logisticsData.length > 0" :tracking-data="logisticsData" />
+      <div v-else style="text-align: center; padding: 20px;">暂无物流轨迹信息...</div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import API from "@/utils/request";
-
+import LogisticsMap from "@/components/LogisticsMap.vue"; // 【修改点3】引入组件
 export default {
   name: "cart",
+  components: {
+    LogisticsMap // 【修改点4】注册组件
+  },
   data() {
     return {
       user: {},
@@ -293,6 +319,9 @@ export default {
       entity: {},
       state: 'all',
       dialogFormVisible: false,
+      // 【修改点5】新增 data 属性
+      logisticsVisible: false,
+      logisticsData: []
     }
   },
   created() {
@@ -425,7 +454,19 @@ export default {
           this.load()
         }
       })
-    }
+    },
+
+    // 【修改点6】新增方法
+    async showLogistics(orderId) {
+      try {
+        const res = await API.get("/api/order/" + orderId + "/tracking");
+        this.logisticsData = res;
+      } catch (e) {
+        this.logisticsData = [];
+        this.$message.error('获取物流信息失败');
+      }
+      this.logisticsVisible = true;
+    },
   }
 }
 </script>
