@@ -15,101 +15,118 @@
     <div class="main-content">
       <el-menu class="side-menu" :default-active="$route.path" @select="handleMenuSelect">
         <el-menu-item :index="item.path" v-for="item in user.permission" :key="item.path">
-          <template slot="title">
+          <template #title>
             <i :class="['el-icon-' + item.icon]"></i>
             <span>{{ item.name }}</span>
           </template>
         </el-menu-item>
       </el-menu>
 
-      <router-view class="main-container" :key="Math.random()" @call="getMenu"/>
+      <router-view class="main-container" :key="Math.random()" @call="getMenu" />
     </div>
   </div>
 </template>
 
 <script>
-
-
 export default {
   name: 'Manage',
-  components: {},
   data() {
     return {
       user: {},
-      permissions: []
-    };
+    }
   },
   created() {
     this.getMenu()
   },
   methods: {
     getMenu() {
-      this.user = sessionStorage.getItem("user") ? JSON.parse(sessionStorage.getItem("user")) : {}
+      this.user = sessionStorage.getItem('user') ? JSON.parse(sessionStorage.getItem('user')) : {}
       this.user.permission.forEach(item => {
-        item.path = "/manage" + item.path
+        item.path = '/manage' + item.path
       })
     },
     handleCommand(command) {
-      if (command === 'person') {
-        this.$router.push('/manage/person');
-      }
+      if (command === 'person') this.$router.push('/manage/person')
       if (command === 'loginOut') {
-        sessionStorage.removeItem("user")
-        this.$router.replace('/login');
-
+        sessionStorage.removeItem('user')
+        this.$router.replace('/login')
       }
     },
     handleMenuSelect(index) {
-      console.log(this.$router.getRoutes())
-      this.$router.push(index);
+      this.$router.push(index)
     },
   },
-  computed: {},
 }
 </script>
 
 <style scoped>
+/* 调色盘 */
+:root {
+  --primary-bg: #fff8ec;
+  --card-bg: #fffdf9;
+  --accent: #ff9b3c;
+  --accent-dark: #d87d29;
+  --text-primary: #5c3a1d;
+  --text-secondary: #8c6e54;
+  --border-light: #f2e2c9;
+}
+
 .app-container {
   display: flex;
   flex-direction: column;
   height: 100%;
+  background: var(--primary-bg);
+  color: var(--text-primary);
+  font-family: "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 header {
   margin-bottom: 3px;
-  line-height: 50px;
-  padding: 0 16px;
+  line-height: 52px;
+  padding: 0 20px;
   font-size: 18px;
-  font-weight: bold;
-  background-color: #fff;
-  box-shadow: 0 0 4px 4px #e6e6e6;
+  font-weight: 600;
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border-light);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+  color: var(--accent-dark);
+}
+
+.el-dropdown-link {
+  color: var(--accent-dark);
 }
 
 .main-content {
   flex: 1;
   display: flex;
-  flex-direction: row;
-}
-
-.main-container {
-  margin-left: 3px;
-  padding: 10px;
-  flex: 1;
-  overflow-y: auto;
-  background-color: #fff;
+  height: calc(100% - 52px);
 }
 
 .side-menu {
   width: 200px;
-  height: 100%;
-
+  background: var(--card-bg);
+  border-right: 1px solid var(--border-light);
 }
 
-.el-menu-item a {
-  text-decoration: none;
+.el-menu {
+  border-right: none;
 }
 
-.el-menu-item.is-active a {
-  color: #409EFF;
+.el-menu-item {
+  color: var(--text-secondary);
+}
+
+.el-menu-item.is-active {
+  background: rgba(255, 155, 60, 0.08) !important;
+  color: var(--accent-dark) !important;
+}
+
+.main-container {
+  flex: 1;
+  margin-left: 3px;
+  padding: 16px;
+  overflow-y: auto;
+  background: var(--card-bg);
+  border-left: none;
 }
 </style>

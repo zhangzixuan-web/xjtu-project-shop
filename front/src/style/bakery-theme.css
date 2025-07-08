@@ -271,4 +271,19 @@ html, body, #app {
   padding: 15px 20px;
   font-weight: 600;
   color: var(--secondary-color);
-} 
+}
+
+ .el-table thead th{
+   background:rgba(255,190,90,.25);
+   color:#5c3a1d;
+   border-color:transparent;
+ }
+.el-table__body tr:nth-child(odd) td{
+  background:rgba(255,249,232,.55);
+}
+.el-table__body tr:nth-child(even) td{
+  background:rgba(255,236,195,.55);
+}
+.el-table__body tr:hover>td{
+  background:rgba(255,206,135,.65) !important;
+}
