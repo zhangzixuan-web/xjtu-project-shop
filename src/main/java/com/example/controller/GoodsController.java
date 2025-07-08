@@ -29,15 +29,19 @@ public class GoodsController {
     @Resource
     private UserService userService;
 
+    // 保留这个方法，它是我们获取当前用户的关键
     public User getUser() {
         String token = request.getHeader("token");
         String username = JWT.decode(token).getAudience().get(0);
         return userService.getOne(Wrappers.<User>lambdaQuery().eq(User::getUsername, username));
     }
 
+    // =================  以下是管理员使用的接口, 基本保持不变  =================
     @PostMapping
     public Result<?> save(@RequestBody Goods goods) {
         goods.setCreateTime(DateUtil.now());
+        // 注意：这里的save方法也需要调整，以区分是管理员创建还是商家创建
+        // 为简单起见，我们假设此接口仅由管理员使用
         goodsService.save(goods);
         return Result.success();
     }
@@ -102,6 +106,7 @@ public class GoodsController {
         return Result.success(page);
     }
 
+    // 原有的管理员分页查询接口
     @GetMapping("/page")
     public Result<?> findPage(@RequestParam(required = false, defaultValue = "") String name,
                               @RequestParam(required = false, defaultValue = "1") Integer pageNum,

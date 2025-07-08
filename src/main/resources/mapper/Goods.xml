@@ -9,7 +9,11 @@
             <if test="name != null and name != ''">
                 and g.name like concat('%', #{name}, '%')
             </if>
+            <if test="merchantId != null">
+                and g.merchant_id = #{merchantId}
+            </if>
         </where>
+        order by g.create_time desc
     </select>
     <select id="getRecommend" resultType="com.example.entity.Goods">
         select * from goods where recommend = 1 limit 8
