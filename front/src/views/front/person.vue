@@ -11,7 +11,7 @@
             </div>
           </div>
           <el-row>
-            <el-col :span="12" :offset="10">
+            <el-col :span="12" :offset="6">
 
 
               <div style="padding: 10px 0; margin-top: 20px">

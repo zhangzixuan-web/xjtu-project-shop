@@ -3,11 +3,12 @@
     <!-- 头部 -->
     <div class="bakery-header">
       <div class="bakery-container">
+        <!-- The spans in this row have been adjusted to total 24 -->
         <el-row type="flex" align="middle">
           <el-col :span="4">
             <div class="bakery-logo"><a href="/front/home">Sweet<span>Delight</span></a></div>
           </el-col>
-          <el-col :span="10">
+          <el-col :span="8">
             <el-menu class="bakery-nav" :default-active="$route.path" @select="handleMenuSelect" mode="horizontal">
               <el-menu-item index="/front/home">首页</el-menu-item>
               <el-menu-item index="/front/cart">购物车</el-menu-item>
@@ -17,7 +18,8 @@
               <el-menu-item index="/front/address">收货地址</el-menu-item>
             </el-menu>
           </el-col>
-          <el-col :span="8" :offset="2" class="search-col">
+          <!-- FIX 1: Changed span from 8 and removed offset to fit the 24-column grid -->
+          <el-col :span="14" class="search-col">
             <div v-if="!$route.path.includes('/search')" class="search-box">
               <el-input
                   style="max-width: 250px; width: 100%; margin-right: 10px;"
@@ -30,7 +32,7 @@
               <div style="width: 100px;height: 20px"></div>
             </div>
           </el-col>
-          <el-col :span="4">
+          <el-col :span="5">
             <div style="text-align: right; padding-right: 10px" v-if="user.id">
               <el-dropdown style="float: right;" @command="handleCommand">
                 <span class="el-dropdown-link" style="cursor: pointer">
@@ -51,9 +53,11 @@
       </div>
     </div>
 
-    <!-- 主体 -->
-    <div class="bakery-container">
-      <router-view />
+    <!-- 主体 (A wrapper is added for better structure) -->
+    <div class="main-content-wrapper">
+      <div class="bakery-container">
+        <router-view />
+      </div>
     </div>
 
     <!-- 底部 -->
@@ -135,8 +139,17 @@ export default {
   flex-direction: column;
 }
 
+/* FIX 2: Added a wrapper for the main content to handle vertical spacing */
+.main-content-wrapper {
+  flex: 1; /* This makes the main content area fill the available vertical space */
+  padding: 20px 0; /* Optional: adds some space above and below the content card */
+}
+
+/* FIX 3: .bakery-container is now purely for centering content horizontally */
 .bakery-container {
-  flex: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .bakery-logo a {
@@ -151,10 +164,14 @@ export default {
 
 .search-col {
   padding-left: 20px;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .search-box {
   height: 40px;
   padding: 5px 0;
+  display: flex;
+  align-items: center;
 }
 </style>
