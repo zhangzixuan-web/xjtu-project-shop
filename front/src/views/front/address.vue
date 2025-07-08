@@ -1,47 +1,58 @@
 <template>
   <div>
-    <div style="padding: 5px 0">
-<!--      <el-input v-model="text" @keyup.enter.native="load" style="width: 200px"> <i slot="prefix" class="el-input__icon el-icon-search"></i></el-input>-->
+    <!-- 不居中的“新增”按钮 -->
+    <div style="padding: 5px 0; display: flex; justify-content: flex-start;">
       <el-button @click="add" type="primary" size="mini" style="margin: 10px">新增</el-button>
     </div>
-    <el-table :data="tableData" border stripe style="width: 100%">
-      <el-table-column prop="id" label="ID" width="100" sortable> </el-table-column>
-      <el-table-column prop="linkUser" label="联系人"></el-table-column>
-      <el-table-column prop="linkAddress" label="联系地址"></el-table-column>
-      <el-table-column prop="linkPhone" label="联系电话"></el-table-column>
-      <el-table-column prop="userId" label="关联用户id"></el-table-column>
 
-      <el-table-column
-          fixed="right"
-          label="操作"
-          width="200">
+    <!-- 表格居中 -->
+    <el-table :data="tableData" border stripe style="width: 100%; text-align: center;">
+      <!-- ID 列，增加宽度并居中对齐 -->
+      <el-table-column prop="id" label="ID" width="150" sortable align="center" header-align="center"></el-table-column>
+
+      <!-- 联系人列，增加宽度并居中对齐 -->
+      <el-table-column prop="linkUser" label="联系人" width="200" align="center" header-align="center"></el-table-column>
+
+      <!-- 联系地址列，增加宽度并居中对齐 -->
+      <el-table-column prop="linkAddress" label="联系地址" width="250" align="center" header-align="center"></el-table-column>
+
+      <!-- 联系电话列，增加宽度并居中对齐 -->
+      <el-table-column prop="linkPhone" label="联系电话" width="200" align="center" header-align="center"></el-table-column>
+
+      <!-- 关联用户ID列，增加宽度并居中对齐 -->
+      <el-table-column prop="userId" label="关联用户id" width="200" align="center" header-align="center"></el-table-column>
+
+      <!-- 操作列，增加宽度并居中对齐 -->
+      <el-table-column fixed="right" label="操作" width="250" align="center" header-align="center">
         <template slot-scope="scope">
-          <el-button type="primary" icon="el-icon-edit" circle  @click="edit(scope.row)"></el-button>
-          <el-popconfirm
-              @confirm="del(scope.row.id)"
-              title="确定删除？"
-          >
-            <el-button type="danger" icon="el-icon-delete" circle slot="reference" style="margin-left: 10px"></el-button>
-          </el-popconfirm>
+          <div style="display: flex; justify-content: center; gap: 10px;">
+            <el-button type="primary" icon="el-icon-edit" circle @click="edit(scope.row)"></el-button>
+            <el-popconfirm
+                @confirm="del(scope.row.id)"
+                title="确定删除？"
+            >
+              <el-button type="danger" icon="el-icon-delete" circle slot="reference"></el-button>
+            </el-popconfirm>
+          </div>
         </template>
       </el-table-column>
     </el-table>
-    <div style="margin-top: 10px">
+
+    <div style="margin-top: 10px; text-align: center;">
       <el-pagination
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-        :current-page="pageNum"
-        :page-size="pageSize"
-        :page-sizes="[2, 5, 10]"
-        layout="total, sizes, prev, pager, next, jumper"
-        :total="total"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page="pageNum"
+          :page-size="pageSize"
+          :page-sizes="[2, 5, 10]"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total"
       >
       </el-pagination>
     </div>
 
     <!-- 弹窗   -->
-    <el-dialog title="信息" :visible.sync="dialogFormVisible" width="30%"
-               :close-on-click-modal="false">
+    <el-dialog title="信息" :visible.sync="dialogFormVisible" width="30%" :close-on-click-modal="false">
       <el-form :model="entity">
         <el-form-item label="联系人" label-width="100px">
           <el-input v-model="entity.linkUser" autocomplete="off" style="width: 80%"></el-input>
@@ -52,7 +63,6 @@
         <el-form-item label="联系电话" label-width="100px">
           <el-input v-model="entity.linkPhone" autocomplete="off" style="width: 80%"></el-input>
         </el-form-item>
-
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取 消</el-button>
@@ -110,16 +120,16 @@ export default {
         this.$message.warning("请登录")
         return
       }
-       API.get(url + "/page/front", {
-          params: {
-            pageNum: this.pageNum,
-            pageSize: this.pageSize,
-            name: this.text
-          }
-       }).then(res => {
-          this.tableData = res.data.records || []
-          this.total = res.data.total
-       })
+      API.get(url + "/page/front", {
+        params: {
+          pageNum: this.pageNum,
+          pageSize: this.pageSize,
+          name: this.text
+        }
+      }).then(res => {
+        this.tableData = res.data.records || []
+        this.total = res.data.total
+      })
     },
     add() {
       if (!this.user.id) {
@@ -139,19 +149,19 @@ export default {
     save() {
       if (!this.entity.id) {
         API.post(url, this.entity).then(res => {
-           if (res.code === '0') {
-             this.$message({
-               type: "success",
-               message: "操作成功"
-             })
-           } else {
-             this.$message({
-               type: "error",
-               message: res.msg
-             })
-           }
-           this.load()
-           this.dialogFormVisible = false
+          if (res.code === '0') {
+            this.$message({
+              type: "success",
+              message: "操作成功"
+            })
+          } else {
+            this.$message({
+              type: "error",
+              message: res.msg
+            })
+          }
+          this.load()
+          this.dialogFormVisible = false
         })
       } else {
         API.put(url, this.entity).then(res => {

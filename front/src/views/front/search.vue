@@ -1,37 +1,34 @@
 <template>
   <div>
-
     <div style="margin-top: 10px">
       <el-row>
-        <!--    推荐商品-->
+        <!-- 推荐商品 -->
         <el-col :span="24">
           <el-card>
-
             <div style="padding: 10px 0">
               <div style="margin-bottom: 20px">
-                <el-input placeholder="输入商品名称搜索" style="width: 30%" v-model="searchText"></el-input>
+                <el-input placeholder="输入商品名称搜索" style="width: 70%" v-model="searchText"></el-input>
                 <el-button style="margin-left: 5px" @click="loadTable">搜索</el-button>
               </div>
               <el-row :gutter="10">
-                <el-col :span="6" v-for="item in tableData" :key="item.id" style="margin-bottom: 10px">
-                  <div style="border: 1px solid #ccc; padding: 10px; cursor: pointer" @click="goodsDetail(item.id)">
-                    <el-image :src="item.imgs[0]" style="width: 100%; height: 100px" fit="contain"></el-image>
-                    <div style="padding: 5px; height: 20px; text-align: center; font-size: 12px; overflow: hidden">
+                <el-col :span="15" v-for="item in tableData" :key="item.id" style="margin-bottom: 10px; text-align: center">
+                  <div style="border: 1px solid #ccc; padding: 10px; cursor: pointer">
+                    <el-image :src="item.imgs[0]" style="width: 100%; height: 150px;" fit="contain"></el-image>
+                    <div style="padding: 5px; height: 20px; text-align: center; font-size: 14px; overflow: hidden">
                       <el-tooltip :content="item.name" placement="bottom" effect="light">
-                        <span class="item-title">{{ item.name }}</span>
+                        <span class="item-title" style="text-align: center">{{ item.name }}</span>
                       </el-tooltip>
                     </div>
-                    <div style="padding: 5px; text-align: center; color: red; font-size: 12px">
+                    <div style="padding: 5px; text-align: center; color: red; font-size: 14px">
                       ￥ {{ item.price }}
                     </div>
                   </div>
-
                 </el-col>
               </el-row>
             </div>
 
-            <!--      分页-->
-            <div style="margin-top: 20px">
+            <!-- 分页 -->
+            <div style="margin-top: 20px; text-align: center;">
               <el-pagination
                   small
                   @size-change="handleSizeChange"
@@ -39,7 +36,7 @@
                   :current-page="pageNum"
                   :page-size="pageSize"
                   :page-sizes="[4, 8, 12]"
-                  layout=" prev, pager, next"
+                  layout="prev, pager, next"
                   :total="total"
               >
               </el-pagination>
@@ -48,9 +45,7 @@
           </el-card>
         </el-col>
       </el-row>
-
     </div>
-
   </div>
 </template>
 
@@ -114,5 +109,18 @@ export default {
 </script>
 
 <style scoped>
+.el-row {
+  display: flex;
+  justify-content: center;
+}
 
+.item-title {
+  display: block;
+  text-align: center;
+}
+
+.el-image {
+  display: block;
+  margin: 0 auto;
+}
 </style>

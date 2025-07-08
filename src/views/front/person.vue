@@ -2,33 +2,32 @@
   <div style="margin-top: 10px">
     <el-row>
       <el-col :span="24">
-        <el-card>
+        <el-card style="max-width: 1000px; margin: 0 auto;">
           <div style="padding: 10px 0; border-bottom: 1px solid #ccc; display: flex">
-            <div style="flex: 1;font-size: 18px">个人信息</div>
+            <div style="flex: 1; font-size: 18px;">个人信息</div>
             <div style="flex: 1; text-align: right">
               <el-button @click="recharge">充值</el-button>
               <el-button @click="edit">修改</el-button>
             </div>
           </div>
           <el-row>
-            <el-col :span="12" :offset="10">
-
-
+            <el-col :span="12" :offset="6">
               <div style="padding: 10px 0; margin-top: 20px">
                 <div style="padding-left: 40px">
                   <el-upload
                       class="avatar-uploader"
-                      :action='uploadUrl'
+                      :action="uploadUrl"
                       :show-file-list="false"
                       :on-success="handleAvatarSuccess"
-                      :before-upload="beforeAvatarUpload">
-                    <img v-if="imageUrl" :src="imageUrl" class="avatar">
+                      :before-upload="beforeAvatarUpload"
+                  >
+                    <img v-if="imageUrl" :src="imageUrl" class="avatar" />
                     <i v-else class="el-icon-plus avatar-uploader-icon"></i>
                   </el-upload>
                 </div>
 
-                <el-form label-width="100px">
-                  <el-form-item label="用户名：" >
+                <el-form label-width="120px">
+                  <el-form-item label="用户名：">
                     <div>{{ userInfo.username }}</div>
                   </el-form-item>
                   <el-form-item label="昵称：">
@@ -51,16 +50,13 @@
                   </el-form-item>
                 </el-form>
               </div>
-
             </el-col>
           </el-row>
-
         </el-card>
       </el-col>
     </el-row>
 
-
-    <el-dialog title="个人信息" :visible.sync="dialogFormVisible" width="30%"
+    <el-dialog title="个人信息" :visible.sync="dialogFormVisible" width="50%"
                :close-on-click-modal="false" :close-on-press-escape="false" :show-close="false">
       <el-form :model="entity">
         <el-form-item label="昵称" label-width="100px">
@@ -88,7 +84,7 @@
       </div>
     </el-dialog>
 
-    <el-dialog title="充值" :visible.sync="vis" width="30%"
+    <el-dialog title="充值" :visible.sync="vis" width="50%"
                :close-on-click-modal="false" :close-on-press-escape="false" :show-close="false">
       <el-form>
         <el-form-item label="金额" label-width="100px">
@@ -100,7 +96,6 @@
         <el-button type="primary" @click="doRecharge">确 定</el-button>
       </div>
     </el-dialog>
-
   </div>
 </template>
 

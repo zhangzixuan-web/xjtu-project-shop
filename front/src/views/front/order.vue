@@ -1,265 +1,126 @@
 <template>
   <div style="margin-top: 10px">
-    <!--    全部-->
+    <!-- 全部 -->
     <el-tabs v-model="activeName" @tab-click="handleClick">
       <el-tab-pane label="全部订单" name="all">
         <el-table :data="tableData" stripe style="width: 100%">
-          <el-table-column type="expand">
-            <template slot-scope="props">
-              <el-form label-position="left" inline class="demo-table-expand">
-                <el-form-item label="联系人：">
-                  <span>{{ props.row.linkUser }}</span>
-                </el-form-item>
-                <el-form-item label="联系地址：">
-                  <span>{{ props.row.linkAddress }}</span>
-                </el-form-item>
-                <el-form-item label="联系电话：">
-                  <span>{{ props.row.linkPhone }}</span>
-                </el-form-item>
-                <el-form-item label="创建时间：">
-                  <span>{{ props.row.createTime }}</span>
-                </el-form-item>
-              </el-form>
-            </template>
-          </el-table-column>
-          <el-table-column label="订单编号" prop="orderNo"></el-table-column>
-          <el-table-column label="商品" width="300">
+          <!-- 商品图片列，增加宽度并居中对齐 -->
+          <el-table-column label="商品图片" width="150" align="center" header-align="center">
             <template slot-scope="scope">
-              <div v-for="item in scope.row.carts" :key="item.id" style="display: flex">
-                <div style="flex: 2"><a :href="['/front/goods?id=' + item.goods.id]">
-                  <el-image :src="item.goods.imgs[0]" style="width: 100px; height: 100px;" fit="contain"></el-image>
-                </a></div>
-                <div style="flex: 2"><a style="color: #666"
-                                        :href="['/front/goods?id=' + item.goods.id]">{{ item.goods.name }}</a></div>
-                <div style="flex: 1; line-height: 100px; text-align: center">X {{ item.count }}</div>
-              </div>
-            </template>
-          </el-table-column>
-          <el-table-column label="总价格">
-            <template slot-scope="scope">
-              <span style="color: red">￥ {{ scope.row.totalPrice }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="状态" prop="state"></el-table-column>
-          <!-- 这是你要【粘贴上去】的正确代码块 -->
-          <el-table-column
-              fixed="right"
-              label="操作"
-              width="150"> <!-- 我们给了它一个合适的宽度 -->
-            <template slot-scope="scope">
-              <!-- 用一个div把所有按钮包起来，并设置样式 -->
-              <div style="display: flex; flex-direction: column; gap: 5px; align-items: flex-start;">
-
-                <!-- 待付款状态的按钮 -->
-                <div v-if="scope.row.state === '待付款'">
-                  <el-button type="primary" size="mini" @click="pay(scope.row.id)">付款</el-button>
-                  <el-button type="danger" size="mini" @click="cancel(scope.row.id)">取消</el-button>
-                </div>
-
-                <!-- 待收货状态的按钮 -->
-                <div v-if="scope.row.state === '待收货'">
-                  <el-button type="warning" size="mini" @click="showLogistics(scope.row.id)">查看物流</el-button>
-                  <el-button type="primary" size="mini" @click="confirm(scope.row.id)" style="margin-top: 5px;">确认收货</el-button>
-                </div>
-
-                <!-- 已完成或已取消状态的按钮 -->
-                <el-popconfirm
-                    v-if="scope.row.state === '已取消' || scope.row.state === '已完成'"
-                    @confirm="del(scope.row.id)"
-                    title="确定删除？"
-                >
-                  <el-button type="danger" size="mini" icon="el-icon-delete" circle slot="reference"></el-button>
-                </el-popconfirm>
-
-              </div>
-            </template>
-          </el-table-column>
-
-        </el-table>
-        <div style="margin-top: 10px">
-          <el-pagination
-              @size-change="handleSizeChange"
-              @current-change="handleCurrentChange"
-              :current-page="pageNum"
-              :page-size="pageSize"
-              :page-sizes="[2, 5, 10]"
-              layout="prev, pager, next"
-              :total="total"
-          >
-          </el-pagination>
-        </div>
-      </el-tab-pane>
-
-      <!--      待付款-->
-      <el-tab-pane label="待付款" name="待付款">
-        <el-table :data="tableData" stripe style="width: 100%">
-          <el-table-column type="expand">
-            <template slot-scope="props">
-              <el-form label-position="left" inline class="demo-table-expand">
-                <el-form-item label="联系人：">
-                  <span>{{ props.row.linkUser }}</span>
-                </el-form-item>
-                <el-form-item label="联系地址：">
-                  <span>{{ props.row.linkAddress }}</span>
-                </el-form-item>
-                <el-form-item label="联系电话：">
-                  <span>{{ props.row.linkPhone }}</span>
-                </el-form-item>
-                <el-form-item label="创建时间：">
-                  <span>{{ props.row.createTime }}</span>
-                </el-form-item>
-              </el-form>
-            </template>
-          </el-table-column>
-          <el-table-column label="订单编号" prop="orderNo"></el-table-column>
-          <el-table-column label="商品" width="300">
-            <template slot-scope="scope">
-              <div v-for="item in scope.row.carts" :key="item.id" style="display: flex">
-                <div style="flex: 2"><a :href="['/front/goods?id=' + item.goods.id]">
-                  <el-image :src="item.goods.imgs[0]" style="width: 100px; height: 100px;" fit="contain"></el-image>
-                </a></div>
-                <div style="flex: 2"><a style="color: #666"
-                                        :href="['/front/goods?id=' + item.goods.id]">{{ item.goods.name }}</a></div>
-                <div style="flex: 1; line-height: 100px; text-align: center">X {{ item.count }}</div>
-              </div>
-            </template>
-          </el-table-column>
-          <el-table-column label="总价格">
-            <template slot-scope="scope">
-              <span style="color: red">￥ {{ scope.row.totalPrice }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="状态" prop="state"></el-table-column>
-
-          <el-table-column
-              fixed="right"
-              label="操作"
-          >
-            <template slot-scope="scope">
-              <el-button type="primary" @click="pay(scope.row.id)" v-if="scope.row.state === '待付款'">付款</el-button>
-              <el-button type="danger" @click="cancel(scope.row.id)" v-if="scope.row.state === '待付款'">取消</el-button>
-              <!-- 【修改点1】新增查看物流按钮 -->
-              <el-button type="warning" size="mini" @click="showLogistics(scope.row.id)" v-if="scope.row.state === '待收货' || scope.row.state === '已发货'">查看物流</el-button>
-              <el-button type="primary" @click="confirm(scope.row.id)" v-if="scope.row.state === '待收货'">确认收货</el-button>
-              <el-popconfirm
-                  v-if="scope.row.state === '已取消' || scope.row.state === '已完成'"
-                  @confirm="del(scope.row.id)"
-                  title="确定删除？"
-              >
-                <el-button type="danger" icon="el-icon-delete" circle slot="reference" style="margin-left: 10px"></el-button>
-              </el-popconfirm>
-            </template>
-          </el-table-column>
-        </el-table>
-        <div style="margin-top: 10px">
-          <el-pagination
-              @size-change="handleSizeChange"
-              @current-change="handleCurrentChange"
-              :current-page="pageNum"
-              :page-size="pageSize"
-              :page-sizes="[2, 5, 10]"
-              layout="prev, pager, next"
-              :total="total"
-          >
-          </el-pagination>
-        </div>
-      </el-tab-pane>
-
-      <!--      待收货-->
-      <el-tab-pane label="待收货" name="待收货">
-        <el-table :data="tableData" stripe style="width: 100%">
-          <el-table-column type="expand">
-            <template slot-scope="props">
-              <el-form label-position="left" inline class="demo-table-expand">
-                <el-form-item label="联系人：">
-                  <span>{{ props.row.linkUser }}</span>
-                </el-form-item>
-                <el-form-item label="联系地址：">
-                  <span>{{ props.row.linkAddress }}</span>
-                </el-form-item>
-                <el-form-item label="联系电话：">
-                  <span>{{ props.row.linkPhone }}</span>
-                </el-form-item>
-                <el-form-item label="创建时间：">
-                  <span>{{ props.row.createTime }}</span>
-                </el-form-item>
-              </el-form>
-            </template>
-          </el-table-column>
-          <el-table-column label="订单编号" prop="orderNo"></el-table-column>
-          <el-table-column label="商品" width="300">
-            <template slot-scope="scope">
-              <div v-for="item in scope.row.carts" :key="item.id" style="display: flex">
-                <div style="flex: 2"><a :href="['/front/goods?id=' + item.goods.id]">
-                  <el-image :src="item.goods.imgs[0]" style="width: 100px; height: 100px;" fit="contain"></el-image>
-                </a></div>
-                <div style="flex: 2"><a style="color: #666"
-                                        :href="['/front/goods?id=' + item.goods.id]">{{ item.goods.name }}</a></div>
-                <div style="flex: 1; line-height: 100px; text-align: center">X {{ item.count }}</div>
-              </div>
-            </template>
-          </el-table-column>
-          <el-table-column label="总价格">
-            <template slot-scope="scope">
-              <span style="color: red">￥ {{ scope.row.totalPrice }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="状态" prop="state"></el-table-column>
-
-          <el-table-column
-              fixed="right"
-              label="操作"
-          >
-            <template slot-scope="scope">
-              <el-button type="primary" @click="pay(scope.row.id)" v-if="scope.row.state === '待付款'">付款</el-button>
-              <el-button type="danger" @click="cancel(scope.row.id)" v-if="scope.row.state === '待付款'">取消</el-button>
-              <el-button type="primary" @click="confirm(scope.row.id)" v-if="scope.row.state === '待收货'">确认收货</el-button>
-              <el-popconfirm
-                  v-if="scope.row.state === '已取消' || scope.row.state === '已完成'"
-                  @confirm="del(scope.row.id)"
-                  title="确定删除？"
-              >
-                <el-button type="danger" icon="el-icon-delete" circle slot="reference" style="margin-left: 10px"></el-button>
-              </el-popconfirm>
-            </template>
-          </el-table-column>
-        </el-table>
-        <div style="margin-top: 10px">
-          <el-pagination
-              @size-change="handleSizeChange"
-              @current-change="handleCurrentChange"
-              :current-page="pageNum"
-              :page-size="pageSize"
-              :page-sizes="[2, 5, 10]"
-              layout="prev, pager, next"
-              :total="total"
-          >
-          </el-pagination>
-        </div>
-      </el-tab-pane>
-
-      <!--      待评价-->
-      <el-tab-pane label="待评价" name="已完成">
-        <el-table :data="commentData" stripe style="width: 100%">
-          <el-table-column label="订单编号" prop="orderNo"></el-table-column>
-          <el-table-column label="商品图片" width="300">
-            <template slot-scope="scope">
-              <a :href="['/front/goods?id=' + scope.row.id]">
-                <el-image :src="scope.row.imgs[0]" style="width: 100px; height: 100px;" fit="contain"></el-image>
+              <a :href="['/front/goods?id=' + scope.row.goods.id]">
+                <el-image :src="scope.row.goods.imgs[0]" style="width: 100px; height: 100px;" fit="contain"></el-image>
               </a>
             </template>
           </el-table-column>
-          <el-table-column label="商品名称" prop="name"></el-table-column>
 
-          <el-table-column
-              fixed="right"
-              label="操作"
-          >
+          <!-- 商品名称列，增加宽度并居中对齐 -->
+          <el-table-column prop="goods.name" label="商品名称" width="200" align="center" header-align="center"></el-table-column>
+
+          <!-- 商品单价列，增加宽度并居中对齐 -->
+          <el-table-column prop="goods.realPrice" label="商品单价" width="150" align="center" header-align="center"></el-table-column>
+
+          <!-- 购买数量列，增加宽度并居中对齐 -->
+          <el-table-column prop="count" label="购买数量" width="180" align="center" header-align="center">
             <template slot-scope="scope">
-              <el-button type="primary" @click="preComment(scope.row.id)">评价</el-button>
+              <el-input-number v-model="scope.row.count" :min="1" :max="10" label="购买数量" style="width: 100px" @change="changeCount(scope.row)"></el-input-number>
+            </template>
+          </el-table-column>
+
+          <!-- 加入时间列，增加宽度并居中对齐 -->
+          <el-table-column prop="createTime" label="加入时间" width="200" align="center" header-align="center"></el-table-column>
+
+          <!-- 操作列，增加宽度并居中对齐 -->
+          <el-table-column fixed="right" label="操作" width="200" align="center" header-align="center">
+            <template slot-scope="scope">
+              <el-button type="danger" icon="el-icon-delete" circle @click="del(scope.row.id)"></el-button>
             </template>
           </el-table-column>
         </el-table>
+
+        <div style="margin-top: 10px">
+          <el-pagination
+              @size-change="handleSizeChange"
+              @current-change="handleCurrentChange"
+              :current-page="pageNum"
+              :page-size="pageSize"
+              :page-sizes="[2, 5, 10]"
+              layout="prev, pager, next"
+              :total="total"
+          >
+          </el-pagination>
+        </div>
+      </el-tab-pane>
+
+      <!-- 待付款 -->
+      <el-tab-pane label="待付款" name="待付款">
+        <el-table :data="tableData" stripe style="width: 100%">
+          <!-- 商品图片列，增加宽度并居中对齐 -->
+          <el-table-column label="商品图片" width="150" align="center" header-align="center">
+            <template slot-scope="scope">
+              <a :href="['/front/goods?id=' + scope.row.goods.id]">
+                <el-image :src="scope.row.goods.imgs[0]" style="width: 100px; height: 100px;" fit="contain"></el-image>
+              </a>
+            </template>
+          </el-table-column>
+
+          <!-- 商品名称列，增加宽度并居中对齐 -->
+          <el-table-column prop="goods.name" label="商品名称" width="200" align="center" header-align="center"></el-table-column>
+
+          <!-- 商品单价列，增加宽度并居中对齐 -->
+          <el-table-column prop="goods.realPrice" label="商品单价" width="150" align="center" header-align="center"></el-table-column>
+
+          <!-- 购买数量列，增加宽度并居中对齐 -->
+          <el-table-column prop="count" label="购买数量" width="180" align="center" header-align="center">
+            <template slot-scope="scope">
+              <el-input-number v-model="scope.row.count" :min="1" :max="10" label="购买数量" style="width: 100px" @change="changeCount(scope.row)"></el-input-number>
+            </template>
+          </el-table-column>
+
+          <!-- 操作列，增加宽度并居中对齐 -->
+          <el-table-column fixed="right" label="操作" width="200" align="center" header-align="center">
+            <template slot-scope="scope">
+              <el-button type="primary" @click="pay(scope.row.id)" v-if="scope.row.state === '待付款'">付款</el-button>
+              <el-button type="danger" @click="cancel(scope.row.id)" v-if="scope.row.state === '待付款'">取消</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+
+        <div style="margin-top: 10px">
+          <el-pagination
+              @size-change="handleSizeChange"
+              @current-change="handleCurrentChange"
+              :current-page="pageNum"
+              :page-size="pageSize"
+              :page-sizes="[2, 5, 10]"
+              layout="prev, pager, next"
+              :total="total"
+          >
+          </el-pagination>
+        </div>
+      </el-tab-pane>
+
+      <!-- 待收货 -->
+      <el-tab-pane label="待收货" name="待收货">
+        <el-table :data="tableData" stripe style="width: 100%">
+          <el-table-column label="商品图片" width="150" align="center" header-align="center">
+            <template slot-scope="scope">
+              <a :href="['/front/goods?id=' + scope.row.goods.id]">
+                <el-image :src="scope.row.goods.imgs[0]" style="width: 100px; height: 100px;" fit="contain"></el-image>
+              </a>
+            </template>
+          </el-table-column>
+
+          <el-table-column label="商品名称" width="200" align="center" header-align="center"></el-table-column>
+
+          <el-table-column label="商品单价" width="150" align="center" header-align="center"></el-table-column>
+
+          <el-table-column label="操作" fixed="right" width="200" align="center" header-align="center">
+            <template slot-scope="scope">
+              <el-button type="primary" @click="confirm(scope.row.id)" v-if="scope.row.state === '待收货'">确认收货</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+
         <div style="margin-top: 10px">
           <el-pagination
               @size-change="handleSizeChange"
@@ -274,38 +135,14 @@
         </div>
       </el-tab-pane>
     </el-tabs>
-
-
-    <!-- 弹窗   -->
-    <el-dialog title="评价信息" :visible.sync="dialogFormVisible" width="30%"
-               :close-on-click-modal="false" :close-on-press-escape="false" :show-close="false">
-      <el-form :model="entity">
-        <el-form-item label="评价" label-width="120px">
-          <el-input type="textarea" v-model="entity.content" autocomplete="off" style="width: 80%"></el-input>
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="comment">确 定</el-button>
-      </div>
-    </el-dialog>
-    <!-- 【修改点2】新增物流对话框 -->
-    <el-dialog title="物流详情" :visible.sync="logisticsVisible" width="60%">
-      <!-- 确保 LogisticsMap 组件接收到数据后再渲染，避免地图初始化失败 -->
-      <LogisticsMap v-if="logisticsVisible && logisticsData.length > 0" :tracking-data="logisticsData" />
-      <div v-else style="text-align: center; padding: 20px;">暂无物流轨迹信息...</div>
-    </el-dialog>
   </div>
 </template>
 
 <script>
 import API from "@/utils/request";
-import LogisticsMap from "@/components/LogisticsMap.vue"; // 【修改点3】引入组件
+
 export default {
   name: "cart",
-  components: {
-    LogisticsMap // 【修改点4】注册组件
-  },
   data() {
     return {
       user: {},
@@ -319,7 +156,6 @@ export default {
       entity: {},
       state: 'all',
       dialogFormVisible: false,
-      // 【修改点5】新增 data 属性
       logisticsVisible: false,
       logisticsData: []
     }
@@ -371,23 +207,7 @@ export default {
         }
       })
     },
-    handleClick(tab, event) {
-      console.log(tab.name);
-
-      this.state = tab.name
-      this.load()
-    },
-    handleSizeChange(pageSize) {
-      this.pageSize = pageSize
-      this.load()
-    },
-    handleCurrentChange(pageNum) {
-      this.pageNum = pageNum
-      this.load()
-    },
     load() {
-      this.commentData = []
-      if(this.state === 'all') {this.state = ''}
       API.get("/api/order/page/front", {
         params: {
           pageNum: this.pageNum,
@@ -396,94 +216,22 @@ export default {
         }
       }).then(res => {
         this.tableData = res.data.records
-
-        this.tableData.forEach(v => {
-          v.carts = JSON.parse(v.carts)
-
-          v.carts.forEach(item => {
-            // 处理下表格的图片显示
-            if (!item.goods.imgs) {
-              item.goods.imgs = ['']
-            } else {
-              item.goods.imgs = JSON.parse(item.goods.imgs)
-            }
-
-            if (this.state === '已完成') {
-              item.goods.orderNo = v.orderNo
-              this.commentData.push(item.goods)
-            }
-          })
-
-        })
       })
-    },
-    pay(id) {
-      API.put("/api/order/pay/" + id).then(res => {
-        if (res.code === '0') {
-          this.$message({
-            type: 'success',
-            message: '付款成功'
-          })
-          this.load()
-        } else {
-          this.$message({
-            type: 'error',
-            message: res.msg
-          })
-        }
-      })
-    },
-    cancel(id) {
-      API.put("/api/order", {id: id, state: '已取消'}).then(res => {
-        if (res.code === '0') {
-          this.$message({
-            type: 'success',
-            message: '操作成功'
-          })
-          this.load()
-        }
-      })
-    },
-    del(id) {
-      API.delete("/api/order/" + id).then(res => {
-        if (res.code === '0') {
-          this.$message({
-            type: 'success',
-            message: '操作成功'
-          })
-          this.load()
-        }
-      })
-    },
-
-    // 【修改点6】新增方法
-    async showLogistics(orderId) {
-      try {
-        const res = await API.get("/api/order/" + orderId + "/tracking");
-        this.logisticsData = res;
-      } catch (e) {
-        this.logisticsData = [];
-        this.$message.error('获取物流信息失败');
-      }
-      this.logisticsVisible = true;
-    },
+    }
   }
 }
 </script>
 
 <style scoped>
-  .demo-table-expand {
-    font-size: 0;
-  }
+.el-table-column {
+  text-align: center;  /* 将所有列内容居中 */
+}
 
-  .demo-table-expand label {
-    width: 90px;
-    color: #99a9bf;
-  }
+.el-table__header {
+  text-align: center;  /* 将表头内容居中 */
+}
 
-  .demo-table-expand .el-form-item {
-    margin-right: 0;
-    margin-bottom: 0;
-    width: 50%;
-  }
+.el-table__body {
+  text-align: center;  /* 将表格主体内容居中 */
+}
 </style>
