@@ -88,8 +88,8 @@
       <el-row type="flex" align="middle">
         <el-col :span="8">
           <div class="discount-image">
-            <div class="discount-badge">80% Off</div>
-            <img src="@/assets/轮播-3.jpg" alt="Discount" style="width: 100%; border-radius: var(--border-radius)">
+            <div class="discount-badge"> 80% Off</div>
+            <img src="@/assets/discount1.jpg" alt="Discount" style="width: 100%; border-radius: var(--border-radius)">
           </div>
         </el-col>
         <el-col :span="16">
@@ -138,7 +138,7 @@
         <el-col :span="8">
           <div class="blog-card">
             <div class="blog-image">
-              <img src="@/assets/bg.jpg" alt="Blog Post">
+              <img src="@/assets/bg1.jpg" alt="Blog Post">
             </div>
             <div class="blog-date">FEBRUARY 28, 2023</div>
             <h3 class="blog-title">Exploring the World of Bakery Items</h3>
@@ -148,7 +148,7 @@
         <el-col :span="8">
           <div class="blog-card">
             <div class="blog-image">
-              <img src="@/assets/bg.jpg" alt="Blog Post">
+              <img src="@/assets/bg2.jpg" alt="Blog Post">
             </div>
             <div class="blog-date">FEBRUARY 6, 2023</div>
             <h3 class="blog-title">The Rise of Artisanal Bread A Trend Worth Trying</h3>
@@ -158,7 +158,7 @@
         <el-col :span="8">
           <div class="blog-card">
             <div class="blog-image">
-              <img src="@/assets/bg.jpg" alt="Blog Post">
+              <img src="@/assets/bg3.jpg" alt="Blog Post">
             </div>
             <div class="blog-date">FEBRUARY 6, 2023</div>
             <h3 class="blog-title">A Behind the Scenes Look at the Kitchen</h3>
@@ -238,7 +238,7 @@ export default {
       // 分类图标数据
       categoryIcons: [
         { name: '面包', icon: require('@/assets/icon1.png') },
-        { name: '蛋糕', icon: require('@/assets/icon2.png') },
+        { name: '蛋糕', icon: require('@/assets/icon2.jpg') },
         { name: '甜点', icon: require('@/assets/icon3.png') },
         { name: '饼干', icon: require('@/assets/icon4.png') }
       ]

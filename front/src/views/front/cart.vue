@@ -37,14 +37,14 @@
     <div style="margin-top: 10px">
       <div style="display: flex; background-color: white; padding: 10px">
         <div style="flex: 1; padding-left: 20px; color: #999; font-size: 12px">
-          <div>共 <span style="color: red; font-size: 20px">{{ count }}</span> 件商品</div>
+          <div>共 <span style="color: #ffa500; font-size: 20px">{{ count }}</span> 件商品</div>
           <div style="color: orange; padding-top: 5px">立即下单，享超值优惠！</div>
         </div>
-        <div style="flex: 1; color: red; text-align: right">
+        <div style="flex: 1; color: #ffa500; text-align: right">
           <div>
             <span>总价：</span>
             <span>￥ {{ totalPrice }}</span>
-            <el-button style="background-color: red; color: white; margin-left: 20px" @click="submitOrder">去结算</el-button>
+            <el-button style="background-color: #ffa500; color: white; margin-left: 20px" @click="submitOrder">去结算</el-button>
           </div>
           <div style="text-align: right; color: #999; font-size: 12px; margin-right: 85px">
             优惠： - ￥{{ discount }}

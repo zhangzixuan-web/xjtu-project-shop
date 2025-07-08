@@ -4,14 +4,14 @@
       <el-col :span="24">
         <el-card>
           <div style="padding: 10px 0; border-bottom: 1px solid #ccc; display: flex">
-            <div style="flex: 1;font-size: 18px">个人信息</div>
+            <div style="flex: 1;font-size: 20px">个人信息</div>
             <div style="flex: 1; text-align: right">
               <el-button @click="recharge">充值</el-button>
               <el-button @click="edit">修改</el-button>
             </div>
           </div>
           <el-row>
-            <el-col :span="12" :offset="6">
+            <el-col :span="10" :offset="10">
 
 
               <div style="padding: 10px 0; margin-top: 20px">
