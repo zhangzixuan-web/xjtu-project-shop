@@ -96,11 +96,20 @@ export function resetRouter(permissions) {
 }
 
 function getPermissions(permissions) {
+    let user = sessionStorage.getItem("user") ? JSON.parse(sessionStorage.getItem("user")) : {}
     let manage = {
         path: '/manage', name: 'Manage', component: () => import("../layout/manage"),
         children: [
             {path: 'person', name: '个人信息', component: () => import("../views/manage/person")}
         ]
+    }
+    // 如果是商家，则手动添加商品管理页面
+    if (user.role && user.role.includes(3)) {
+        manage.children.push({
+            path: "merchantGoods",
+            name: "商品管理",
+            component: () => import("../views/manage/merchantGoods")
+        })
     }
     // 设置路由菜单
     if (permissions) {

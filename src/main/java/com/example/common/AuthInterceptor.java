@@ -27,6 +27,13 @@ public class AuthInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String token = request.getHeader("token");
+        String requestURI = request.getRequestURI();
+
+        // 放行swagger和静态资源
+        if (requestURI.contains("/doc.html") || requestURI.contains("/webjars") || requestURI.contains("/swagger-resources") || requestURI.contains("/v2/api-docs")) {
+            return true;
+        }
+
         if (StrUtil.isBlank(token)) {
             throw new CustomException("401", "未获取到token, 请重新登录");
         }
@@ -48,6 +55,15 @@ public class AuthInterceptor implements HandlerInterceptor {
             throw new CustomException("401", "token不合法, 请重新登录");
         }
 
+        // ====== 权限校验 ======
+        // 如果访问的是商家接口
+        if (requestURI.contains("/merchant")) {
+            // 检查用户角色
+            if (!"商家".equals(user.getRole())) {
+                throw new CustomException("401", "无权限访问");
+            }
+        }
+        
         return true;
     }
 

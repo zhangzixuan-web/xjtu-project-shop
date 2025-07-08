@@ -83,4 +83,7 @@ public class Goods extends Model<Goods> {
 
     private Boolean recommend;
 
+
+    private Long merchantId;  // <<< 新增字段
+
 }
