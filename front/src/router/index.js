@@ -96,32 +96,33 @@ export function resetRouter(permissions) {
 }
 
 function getPermissions(permissions) {
-    let user = sessionStorage.getItem("user") ? JSON.parse(sessionStorage.getItem("user")) : {}
+    let user = sessionStorage.getItem("user") ? JSON.parse(sessionStorage.getItem("user")) : {};
     let manage = {
-        path: '/manage', name: 'Manage', component: () => import("../layout/manage"),
+        path: '/manage',
+        name: 'Manage',
+        component: () => import("../layout/manage"),
         children: [
-            {path: 'person', name: '个人信息', component: () => import("../views/manage/person")}
+            { path: 'person', name: '个人信息', component: () => import("../views/manage/person") }
         ]
-    }
-    // 如果是商家，则手动添加商品管理页面
-    if (user.role && user.role.includes(3)) {
-        manage.children.push({
-            path: "merchantGoods",
-            name: "商品管理",
-            component: () => import("../views/manage/merchantGoods")
-        })
-    }
-    // 设置路由菜单
-    if (permissions) {
+    };
+
+    if (user.role && user.role.includes(3)) { // Is Merchant
+        manage.children.push(
+            { path: "merchantHome", name: "商家主页", component: () => import("../views/manage/MerchantHome.vue") },
+            { path: "merchantGoods", name: "商品管理", component: () => import("../views/manage/merchantGoods.vue") },
+            { path: "merchantOrder", name: "订单管理", component: () => import("../views/manage/MerchantOrder.vue") },
+            { path: "merchantComment", name: "评论管理", component: () => import("../views/manage/MerchantComment.vue") }
+        );
+    } else if (permissions) { // Is Admin or other role with permissions
         permissions.forEach(item => {
             manage.children.push({
-                path: "/manage" + item.path,
+                path: item.path.substring(1), // remove leading '/'
                 name: item.name,
                 component: () => import("../views/manage" + item.path)
             });
-        })
+        });
     }
-    return manage
+    return manage;
 }
 
 

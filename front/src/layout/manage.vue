@@ -41,9 +41,20 @@ export default {
   methods: {
     getMenu() {
       this.user = sessionStorage.getItem('user') ? JSON.parse(sessionStorage.getItem('user')) : {}
-      this.user.permission.forEach(item => {
-        item.path = '/manage' + item.path
-      })
+      const isMerchant = this.user.role && this.user.role.includes(3);
+
+      if (isMerchant) {
+        this.user.permission = [
+          { path: '/manage/merchantHome', name: '首页', icon: 's-home' },
+          { path: '/manage/merchantGoods', name: '商品管理', icon: 's-goods' },
+          { path: '/manage/merchantOrder', name: '订单管理', icon: 's-order' },
+          { path: '/manage/merchantComment', name: '评论管理', icon: 'chat-line-square' }
+        ];
+      } else {
+        this.user.permission.forEach(item => {
+          item.path = '/manage' + item.path
+        })
+      }
     },
     handleCommand(command) {
       if (command === 'person') this.$router.push('/manage/person')

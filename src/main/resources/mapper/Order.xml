@@ -2,4 +2,21 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.example.mapper.OrderMapper">
 
+    <select id="findPageByMerchantId" resultType="com.example.entity.Order">
+        select distinct o.* from t_order o
+        left join t_order_goods og on o.id = og.order_id
+        left join t_goods g on og.goods_id = g.id
+        where g.merchant_id = #{merchantId}
+        <if test="name != null and name != ''">
+            and o.order_no like concat('%', #{name}, '%')
+        </if>
+        order by o.id desc
+    </select>
+
+    <select id="checkOrderOwner" resultType="java.lang.Integer">
+        select count(1) from t_order_goods og
+        left join t_goods g on og.goods_id = g.id
+        where og.order_id = #{orderId} and g.merchant_id = #{merchantId}
+    </select>
+
 </mapper>

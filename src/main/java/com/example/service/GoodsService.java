@@ -16,7 +16,9 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class GoodsService extends ServiceImpl<GoodsMapper, Goods> {
@@ -82,6 +84,19 @@ public class GoodsService extends ServiceImpl<GoodsMapper, Goods> {
 
     public IPage<Goods> pageByCategory(Page<Goods> page, Long id) {
         return goodsMapper.pageByCategory(page, id);
+    }
+
+    public Map<String, Object> getMerchantStats(Long merchantId) {
+        Integer totalSales = goodsMapper.countBySales(merchantId);
+        Double totalRevenue = goodsMapper.countByPrice(merchantId);
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("totalSales", totalSales != null ? totalSales : 0);
+        stats.put("totalRevenue", totalRevenue != null ? totalRevenue : 0.0);
+        return stats;
+    }
+
+    public List<Map<String, Object>> getSalesByCategory(Long merchantId) {
+        return goodsMapper.countSalesByCategory(merchantId);
     }
 
     public List<Goods> recommend() {
