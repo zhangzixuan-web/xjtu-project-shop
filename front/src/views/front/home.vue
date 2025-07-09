@@ -1,5 +1,7 @@
 <template>
   <div>
+    <!-- 👇 这是新增的搜索栏 -->
+    <SearchBar />
     <!-- Hero Banner with Video -->
     <div class="bakery-hero" style="margin-top: 20px">
       <el-row type="flex" align="middle" style="height: 100%;">
@@ -212,11 +214,13 @@
 
 <script>
 import API from "@/utils/request";
-
-const url = "/api/video/"
+import SearchBar from "@/components/SearchBar.vue";  // 👈 添加了这一行
 
 export default {
   name: "Home",
+  components: {
+    SearchBar
+  },
   data() {
     return {
       sales: [],
@@ -229,13 +233,11 @@ export default {
       pageNum: 1,
       pageSize: 8,
       total: 0,
-      // 轮播图数据
       carouselImages: [
         { src: require('@/assets/轮播-1.jpg') },
         { src: require('@/assets/轮播-2.jpg') },
         { src: require('@/assets/轮播-3.jpg') }
       ],
-      // 分类图标数据
       categoryIcons: [
         { name: '面包', icon: require('@/assets/icon1.png') },
         { name: '蛋糕', icon: require('@/assets/icon2.jpg') },
@@ -245,8 +247,8 @@ export default {
     };
   },
   created() {
-    this.user = sessionStorage.getItem("user") ? JSON.parse(sessionStorage.getItem("user")) : {}
-    this.load()
+    this.user = sessionStorage.getItem("user") ? JSON.parse(sessionStorage.getItem("user")) : {};
+    this.load();
   },
   methods: {
     getCategoryIcon(index) {
@@ -254,53 +256,41 @@ export default {
       return icons[index % icons.length];
     },
     goodsDetail(id) {
-      this.$router.replace({path: '/front/goods', query: {id: id}})
+      this.$router.replace({ path: '/front/goods', query: { id } });
     },
     getGoodsByCategory(id) {
       if (!id && this.categories.length > 0) {
         id = this.categories[0].id;
       }
-      this.activeIndex = id
-      this.loadTable(id)
+      this.activeIndex = id;
+      this.loadTable(id);
     },
     load() {
       API.get("/api/banner").then(res => {
-        this.imgList = res.data
-      })
+        this.imgList = res.data;
+      });
 
       API.get("/api/goods/recommend").then(res => {
-        this.recommend = res.data
-
+        this.recommend = res.data;
         this.recommend.forEach(item => {
-          // 处理下表格的图片显示
-          if (!item.imgs) {
-            item.imgs = ['']
-          } else {
-            item.imgs = JSON.parse(item.imgs)
-          }
-        })
-      })
+          item.imgs = item.imgs ? JSON.parse(item.imgs) : [''];
+        });
+      });
 
       API.get("/api/goods/sales").then(res => {
-        this.sales = res.data
-
+        this.sales = res.data;
         this.sales.forEach(item => {
-          // 处理下表格的图片显示
-          if (!item.imgs) {
-            item.imgs = ['']
-          } else {
-            item.imgs = JSON.parse(item.imgs)
-          }
-        })
-      })
+          item.imgs = item.imgs ? JSON.parse(item.imgs) : [''];
+        });
+      });
 
       API.get("/api/category").then(res => {
-        this.categories = res.data
+        this.categories = res.data;
         if (this.categories && this.categories.length > 0) {
-          this.activeIndex = this.categories[0].id
-          this.loadTable(this.categories[0].id)
+          this.activeIndex = this.categories[0].id;
+          this.loadTable(this.categories[0].id);
         }
-      })
+      });
     },
     loadTable(categoryId) {
       API.get("/api/goods/byCategory/" + categoryId, {
@@ -309,30 +299,25 @@ export default {
           pageSize: this.pageSize
         }
       }).then(res => {
-        this.tableData = res.data.records
-        this.total = res.data.total
-
+        this.tableData = res.data.records;
+        this.total = res.data.total;
         this.tableData.forEach(item => {
-          // 处理下表格的图片显示
-          if (!item.imgs) {
-            item.imgs = ['']
-          } else {
-            item.imgs = JSON.parse(item.imgs)
-          }
-        })
-      })
+          item.imgs = item.imgs ? JSON.parse(item.imgs) : [''];
+        });
+      });
     },
     handleSizeChange(pageSize) {
       this.pageSize = pageSize;
-      this.loadTable(this.categories[0].id)
+      this.loadTable(this.categories[0].id);
     },
     handleCurrentChange(pageNum) {
       this.pageNum = pageNum;
-      this.loadTable(this.categories[0].id)
-    },
-  },
+      this.loadTable(this.categories[0].id);
+    }
+  }
 };
 </script>
+
 
 <style scoped>
 .active {
