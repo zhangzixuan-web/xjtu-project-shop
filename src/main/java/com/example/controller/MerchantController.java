@@ -14,9 +14,11 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
+import java.util.Map;
 
 @RestController
-@RequestMapping("/api/merchant/goods")
+@RequestMapping("/api/merchant")
 public class MerchantController {
 
     @Resource
@@ -26,6 +28,26 @@ public class MerchantController {
     @Resource
     private UserService userService;
 
+    @GetMapping("/stats")
+    public Result<?> getStats() {
+        User currentUser = getUser();
+        if (currentUser == null) {
+            return Result.error("-1", "请先登录");
+        }
+        Map<String, Object> stats = goodsService.getMerchantStats(currentUser.getId());
+        return Result.success(stats);
+    }
+
+    @GetMapping("/stats/category")
+    public Result<?> getStatsByCategory() {
+        User currentUser = getUser();
+        if (currentUser == null) {
+            return Result.error("-1", "请先登录");
+        }
+        List<Map<String, Object>> categoryStats = goodsService.getSalesByCategory(currentUser.getId());
+        return Result.success(categoryStats);
+    }
+
     public User getUser() {
         String token = request.getHeader("token");
         if (token == null) return null;
@@ -33,7 +55,7 @@ public class MerchantController {
         return userService.getOne(Wrappers.<User>lambdaQuery().eq(User::getUsername, username));
     }
 
-    @PostMapping
+    @PostMapping("/goods")
     public Result<?> saveForMerchant(@RequestBody Goods goods) {
         User currentUser = getUser();
         if (currentUser == null) {
@@ -44,7 +66,7 @@ public class MerchantController {
         return Result.success();
     }
 
-    @PutMapping
+    @PutMapping("/goods")
     public Result<?> updateForMerchant(@RequestBody Goods goods) {
         User currentUser = getUser();
         if (currentUser == null) {
@@ -54,7 +76,7 @@ public class MerchantController {
         return Result.success();
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/goods/{id}")
     public Result<?> deleteForMerchant(@PathVariable Long id) {
         User currentUser = getUser();
         if (currentUser == null) {
@@ -64,7 +86,7 @@ public class MerchantController {
         return Result.success();
     }
 
-    @GetMapping("/page")
+    @GetMapping("/goods/page")
     public Result<?> findMerchantPage(@RequestParam(required = false, defaultValue = "") String name,
                                       @RequestParam(required = false, defaultValue = "1") Integer pageNum,
                                       @RequestParam(required = false, defaultValue = "10") Integer pageSize) {

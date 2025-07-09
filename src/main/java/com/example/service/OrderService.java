@@ -1,7 +1,11 @@
 package com.example.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.entity.Order;
+import com.example.entity.User;
+import com.example.exception.CustomException;
 import com.example.mapper.OrderMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,6 +20,30 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
 
     @Autowired
     private LogisticsSimulatorService logisticsSimulatorService;
+
+    public void shipOrderByMerchant(Long orderId, String company, String number, User merchant) {
+        Integer count = baseMapper.checkOrderOwner(orderId, merchant.getId());
+        if (count == 0) {
+            throw new CustomException("-1", "无权操作");
+        }
+        // 1. 查找订单
+        Order order = getById(orderId);
+        if (order == null || !"待发货".equals(order.getState())) {
+            throw new CustomException("-1", "订单状态不正确，无法发货");
+        }
+
+        // 2. 更新订单信息
+        order.setState("已发货");
+        order.setShippingCompany(company);
+        order.setShippingNumber(number);
+
+        // 3. 生成并保存模拟物流轨迹
+        String trackingJson = logisticsSimulatorService.generateFakeTrackingData(company);
+        order.setShippingDetails(trackingJson);
+
+        // 4. 保存回数据库
+        updateById(order);
+    }
 
     // 管理员发货操作
     public void shipOrder(Long orderId, String company, String number) {
@@ -36,6 +64,10 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
 
         // 4. 保存回数据库
         orderMapper.updateById(order);
+    }
+
+    public IPage<Order> findPageByMerchantId(Page<?> page, Long merchantId, String name) {
+        return baseMapper.findPageByMerchantId(page, merchantId, name);
     }
 
     // 用户或管理员查询物流信息

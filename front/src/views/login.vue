@@ -112,13 +112,12 @@ export default {
           this.$message.success("登录成功");
           sessionStorage.setItem("user", JSON.stringify(res.data));
           resetRouter(res.data.permission);
-
+ 
           // 根据角色动态跳转
-          const roles = res.data.role;
-          if (roles.includes(1)) { // 管理员
+          if (res.data.role && res.data.role.includes(3)) { // 商家
+            this.$router.replace("/manage/merchantHome");
+          } else if (res.data.role && res.data.role.includes(1)) { // 管理员
             this.$router.replace("/manage/home");
-          } else if (roles.includes(3)) { // 商家
-            this.$router.replace("/manage/merchantGoods");
           } else { // 普通用户
             this.$router.replace("/front/home");
           }
