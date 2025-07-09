@@ -1,10 +1,9 @@
 package com.example.controller;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.TypeReference;
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.auth0.jwt.JWT;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -23,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -58,8 +56,7 @@ public class OrderController {
         order.setCreateTime(DateUtil.now());
 
         String cartsStr = order.getCarts();
-        List<Cart> carts = JSONUtil.toBean(cartsStr, new TypeReference<List<Cart>>() {
-        }, true);
+        List<Cart> carts = JSONUtil.toBean(cartsStr, new TypeReference<List<Cart>>() {}, true);
         orderService.save(order);
 
         for (Cart cart : carts) {
@@ -68,7 +65,7 @@ public class OrderController {
 
             // 扣库存
             Goods goods = goodsService.getById(goodsId);
-            if(goods.getStore() - cart.getCount() < 0) {
+            if (goods.getStore() - cart.getCount() < 0) {
                 throw new CustomException("-1", "库存不足");
             }
             goods.setStore(goods.getStore() - cart.getCount());
@@ -135,9 +132,7 @@ public class OrderController {
     @PostMapping("/pre")
     public Result<?> pre(@RequestBody PreOrderQo preOrderQo) throws JSONException {
         String cartsStr = preOrderQo.getCarts();
-        // 讲前台传来的json字符串转换成 list对象
-        List<Cart> carts = JSONUtil.toBean(cartsStr, new TypeReference<List<Cart>>() {
-        }, true);
+        List<Cart> carts = JSONUtil.toBean(cartsStr, new TypeReference<List<Cart>>() {}, true);
         Map<String, Object> all = cartService.findAll(carts);
         return Result.success(all);
     }
@@ -165,25 +160,16 @@ public class OrderController {
         return Result.success(page);
     }
 
-    /**
-     * 前台查询订单列表
-     * @param state
-     * @param pageNum
-     * @param pageSize
-     * @return
-     */
     @GetMapping("/page/front")
     public Result<?> findPageFront(@RequestParam(required = false, defaultValue = "") String state,
                                    @RequestParam(required = false, defaultValue = "1") Integer pageNum,
                                    @RequestParam(required = false, defaultValue = "10") Integer pageSize) {
         LambdaQueryWrapper<Order> query = Wrappers.<Order>lambdaQuery().orderByDesc(Order::getId);
         query.eq(Order::getUserId, getUser().getId());
-        // 根据状态查询
         if (StrUtil.isNotBlank(state)) {
             query.eq(Order::getState, state);
         }
         IPage<Order> page = orderService.page(new Page<>(pageNum, pageSize), query);
-
         for (Order order : page.getRecords()) {
             Long orderId = order.getId();
             List<Cart> carts = orderGoodsService.findByOrderId(orderId);
@@ -191,28 +177,17 @@ public class OrderController {
         }
         return Result.success(page);
     }
-    /**
-     * 后台管理员发货接口
-     * @param id 订单ID
-     * @param params 请求体，应包含 company 和 number
-     * @return
-     */
+
     @PostMapping("/{id}/ship")
     public Result ship(@PathVariable Long id, @RequestBody Map<String, String> params) {
         String company = params.get("company");
         String number = params.get("number");
         orderService.shipOrder(id, company, number);
-        return Result.success(); // 假设你有统一的返回对象 Result
+        return Result.success();
     }
 
-    /**
-     * 前台用户查询物流接口
-     * @param id 订单ID
-     * @return 物流轨迹的JSON字符串
-     */
     @GetMapping("/{id}/tracking")
     public String getTracking(@PathVariable Long id) {
         return orderService.getOrderTrackingDetails(id);
     }
 }
-

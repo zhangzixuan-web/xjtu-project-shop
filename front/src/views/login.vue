@@ -7,7 +7,7 @@
           <p>欢迎来到美味烘焙世界</p>
         </div>
         <div class="bakery-login-image">
-          <img src="@/assets/轮播-1.jpg" alt="Bakery Products">
+          <img src="@/assets/sign in1.jpg" alt="Bakery Products">
         </div>
       </div>
       
