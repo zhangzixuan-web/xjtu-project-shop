@@ -1,32 +1,26 @@
 <template>
   <div>
-    <!-- 不居中的“新增”按钮 -->
+    <!-- "新增"按钮 -->
     <div style="padding: 5px 0; display: flex; justify-content: flex-start;">
       <el-button @click="add" type="primary" size="mini" style="margin: 10px">新增</el-button>
     </div>
 
-    <!-- 表格居中 -->
+    <!-- 地址列表表格 -->
     <el-table :data="tableData" border stripe style="width: 100%; text-align: center;">
-      <!-- ID 列，增加宽度并居中对齐 -->
+      <!-- 列定义 -->
       <el-table-column prop="id" label="ID" width="150" sortable align="center" header-align="center"></el-table-column>
-
-      <!-- 联系人列，增加宽度并居中对齐 -->
       <el-table-column prop="linkUser" label="联系人" width="200" align="center" header-align="center"></el-table-column>
-
-      <!-- 联系地址列，增加宽度并居中对齐 -->
       <el-table-column prop="linkAddress" label="联系地址" width="250" align="center" header-align="center"></el-table-column>
-
-      <!-- 联系电话列，增加宽度并居中对齐 -->
       <el-table-column prop="linkPhone" label="联系电话" width="200" align="center" header-align="center"></el-table-column>
-
-      <!-- 关联用户ID列，增加宽度并居中对齐 -->
       <el-table-column prop="userId" label="关联用户id" width="200" align="center" header-align="center"></el-table-column>
 
-      <!-- 操作列，增加宽度并居中对齐 -->
+      <!-- 操作列 -->
       <el-table-column fixed="right" label="操作" width="250" align="center" header-align="center">
         <template slot-scope="scope">
           <div style="display: flex; justify-content: center; gap: 10px;">
+            <!-- 修改按钮 -->
             <el-button type="primary" icon="el-icon-edit" circle @click="edit(scope.row)"></el-button>
+            <!-- 删除按钮，使用 Popconfirm 进行二次确认 -->
             <el-popconfirm
                 @confirm="del(scope.row.id)"
                 title="确定删除？"
@@ -38,6 +32,7 @@
       </el-table-column>
     </el-table>
 
+    <!-- 分页组件 -->
     <div style="margin-top: 10px; text-align: center;">
       <el-pagination
           @size-change="handleSizeChange"
@@ -51,7 +46,7 @@
       </el-pagination>
     </div>
 
-    <!-- 弹窗   -->
+    <!-- 新增/编辑地址信息的弹窗 -->
     <el-dialog title="信息" :visible.sync="dialogFormVisible" width="30%" :close-on-click-modal="false">
       <el-form :model="entity">
         <el-form-item label="联系人" label-width="100px">
@@ -80,9 +75,6 @@ export default {
   name: "Address",
   data() {
     return {
-      fileList: [],
-      options: [],
-      text: '',
       user: {},
       tableData: [],
       pageNum: 1,
@@ -90,104 +82,89 @@ export default {
       entity: {},
       total: 0,
       dialogFormVisible: false,
-      users: []
     };
   },
   created() {
     this.user = sessionStorage.getItem("user") ? JSON.parse(sessionStorage.getItem("user")) : {}
-    this.$emit('user', this.user);
     this.load()
-    API.get("/api/user").then(res => {
-      this.users = res.data
-    })
   },
   methods: {
-    fileSuccessUpload(res) {
-      this.entity.file = "http://localhost:9999/files/" + res.data;
-      this.fileList = [res.data]
-      console.log(res)
-    },
+    // 处理每页显示条数变化
     handleSizeChange(pageSize) {
       this.pageSize = pageSize
       this.load()
     },
+    // 处理页码变化
     handleCurrentChange(pageNum) {
       this.pageNum = pageNum
       this.load()
     },
+    // 加载地址列表数据
     load() {
       if (!this.user.id) {
         this.$message.warning("请登录")
         return
       }
+      // 请求当前用户的地址列表（分页）
       API.get(url + "/page/front", {
         params: {
           pageNum: this.pageNum,
           pageSize: this.pageSize,
-          name: this.text
         }
       }).then(res => {
         this.tableData = res.data.records || []
         this.total = res.data.total
       })
     },
+    // 打开新增弹窗
     add() {
       if (!this.user.id) {
         this.$message.warning("请登录")
         return
       }
+      // 初始化 entity 对象，并关联当前用户
       this.entity = { userId: this.user.id }
-      this.fileList = []
       this.dialogFormVisible = true
     },
+    // 打开编辑弹窗
     edit(obj) {
+      // 深拷贝选中的地址信息到 entity
       this.entity = JSON.parse(JSON.stringify(obj))
+      // 确保 userId 正确
       this.entity.userId = this.user.id
-      this.fileList = []
       this.dialogFormVisible = true
     },
+    // 保存地址（新增或修改）
     save() {
-      if (!this.entity.id) {
+      // 根据 entity 是否有 id 来判断是新增还是修改
+      if (!this.entity.id) { // 新增
         API.post(url, this.entity).then(res => {
           if (res.code === '0') {
-            this.$message({
-              type: "success",
-              message: "操作成功"
-            })
+            this.$message.success("操作成功");
           } else {
-            this.$message({
-              type: "error",
-              message: res.msg
-            })
+            this.$message.error(res.msg);
           }
-          this.load()
-          this.dialogFormVisible = false
+          this.load(); // 重新加载列表
+          this.dialogFormVisible = false;
         })
-      } else {
+      } else { // 修改
         API.put(url, this.entity).then(res => {
           if (res.code === '0') {
-            this.$message({
-              type: "success",
-              message: "操作成功"
-            })
+            this.$message.success("操作成功");
           } else {
-            this.$message({
-              type: "error",
-              message: res.msg
-            })
+            this.$message.error(res.msg);
           }
-          this.load()
-          this.dialogFormVisible = false
+          this.load(); // 重新加载列表
+          this.dialogFormVisible = false;
         })
       }
     },
+    // 删除地址
     del(id) {
       API.delete(url + id).then(res => {
-        this.$message({
-          type: "success",
-          message: "操作成功"
-        })
-        this.load()
+        // 这里假设删除总能成功，可以根据后端返回值进行更精细的判断
+        this.$message.success("操作成功");
+        this.load(); // 重新加载列表
       })
     }
   },

@@ -1,9 +1,12 @@
 <template>
   <div>
+    <!-- 搜索和新增区域 -->
     <div style="padding: 5px 0">
       <el-input v-model="text" @keyup.enter.native="load" style="width: 200px"> <i slot="prefix" class="el-input__icon el-icon-search"></i></el-input>
       <el-button @click="add" type="primary" size="mini" style="margin: 10px">新增</el-button>
     </div>
+
+    <!-- Banner 数据表格 -->
     <el-table :data="tableData" border stripe style="width: 100%">
       <el-table-column prop="id" label="ID" width="100" sortable> </el-table-column>
       <el-table-column label="图片">
@@ -13,6 +16,7 @@
       </el-table-column>
       <el-table-column prop="url" label="关联url"></el-table-column>
 
+      <!-- 操作列 -->
       <el-table-column
           fixed="right"
           label="操作"
@@ -28,6 +32,8 @@
         </template>
       </el-table-column>
     </el-table>
+
+    <!-- 分页 -->
     <div style="margin-top: 10px">
       <el-pagination
         @size-change="handleSizeChange"
@@ -53,7 +59,6 @@
         <el-form-item label="关联url" label-width="150px">
           <el-input v-model="entity.url" autocomplete="off" style="width: 80%"></el-input>
         </el-form-item>
-
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取 消</el-button>
@@ -94,14 +99,17 @@ export default {
       this.fileList = [res.data]
       console.log(res)
     },
+    // 处理每页显示条数变化
     handleSizeChange(pageSize) {
-      this.pageSize = pageSize
-      this.load()
+      this.pageSize = pageSize;
+      this.load();
     },
+    // 处理页码变化
     handleCurrentChange(pageNum) {
       this.pageNum = pageNum
       this.load()
     },
+    // 加载 Banner 列表
     load() {
        API.get(url + "/page", {
           params: {
@@ -114,16 +122,22 @@ export default {
           this.total = res.data.total
        })
     },
+    // 打开新增弹窗
     add() {
-      this.entity = {}
-      this.fileList = []
-      this.dialogFormVisible = true
+      this.entity = {};
+      // 如果上传组件存在，清空已上传的文件列表
+      if (this.$refs.upload) {
+        this.$refs.upload.clearFiles();
+      }
+      this.dialogFormVisible = true;
     },
+    // 打开编辑弹窗
     edit(obj) {
       this.entity = JSON.parse(JSON.stringify(obj))
       this.fileList = []
       this.dialogFormVisible = true
     },
+    // 保存（新增或修改）
     save() {
       if (!this.entity.id) {
         API.post(url, this.entity).then(res => {
@@ -159,6 +173,7 @@ export default {
         })
       }
     },
+    // 删除 Banner
     del(id) {
       API.delete(url + id).then(res => {
         this.$message({

@@ -1,15 +1,19 @@
 <template>
   <div>
+    <!-- 搜索和新增区域 -->
     <div style="padding: 5px 0">
       <el-input v-model="text" @keyup.enter.native="load" style="width: 200px"> <i slot="prefix" class="el-input__icon el-icon-search"></i></el-input>
       <el-button @click="add" type="primary" size="mini" style="margin: 10px">新增</el-button>
     </div>
+
+    <!-- 权限（菜单）数据表格 -->
     <el-table :data="tableData" border stripe style="width: 100%">
       <el-table-column prop="id" label="ID"></el-table-column>
       <el-table-column prop="name" label="名称"></el-table-column>
       <el-table-column prop="description" label="描述"></el-table-column>
       <el-table-column prop="path" label="页面路径"></el-table-column>
       <el-table-column prop="icon" label="图标"></el-table-column>
+      <!-- 操作列 -->
       <el-table-column
           fixed="right"
           label="操作"
@@ -26,6 +30,8 @@
         </template>
       </el-table-column>
     </el-table>
+
+    <!-- 分页 -->
     <div style="margin-top: 10px">
       <el-pagination
           @size-change="handleSizeChange"
@@ -39,7 +45,7 @@
       </el-pagination>
     </div>
 
-    <!-- 弹窗   -->
+    <!-- 新增/编辑弹窗 -->
     <el-dialog title="菜单信息" :visible.sync="dialogFormVisible" width="30%"
                :close-on-click-modal="false" :close-on-press-escape="false" :show-close="false">
       <el-form :model="entity">
@@ -55,7 +61,6 @@
         <el-form-item label="图标" label-width="150px">
           <el-input v-model="entity.icon" autocomplete="off" style="width: 80%"></el-input>
         </el-form-item>
-
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取 消</el-button>
@@ -120,90 +125,46 @@ export default {
       this.dialogFormVisible = true
     },
     save() {
-      if (!this.entity.id) {
-        API.post(url, this.entity).then(res => {
-          if (res.code === '0') {
-            this.$message({
-              type: "success",
-              message: "操作成功"
-            })
-          } else {
-            this.$message({
-              type: "error",
-              message: res.msg
-            })
-          }
-          this.load()
-          this.dialogFormVisible = false
-
-          // 重新请求用户基础数据
-          API.get("/api/user/" + this.user.id).then(res => {
-            let token = this.user.token
-            this.user = res.data
-            this.user.token = token
-            sessionStorage.setItem("user", JSON.stringify(this.user))
-            // 重置路由
-            resetRouter(JSON.parse(JSON.stringify(res.data.permission)))
-            // 设置菜单
-            setMenu(JSON.parse(JSON.stringify(res.data.permission)))
-          })
-        })
-      } else {
-        API.put(url, this.entity).then(res => {
-          if (res.code === '0') {
-            this.$message({
-              type: "success",
-              message: "操作成功"
-            })
-          } else {
-            this.$message({
-              type: "error",
-              message: res.msg
-            })
-          }
-          this.load()
-          this.dialogFormVisible = false
-
-          // 重新请求用户基础数据
-          API.get("/api/user/" + this.user.id).then(res => {
-            let token = this.user.token
-            this.user = res.data
-            this.user.token = token
-            sessionStorage.setItem("user", JSON.stringify(this.user))
-            // 重置路由
-            resetRouter(JSON.parse(JSON.stringify(res.data.permission)))
-            /// 设置菜单
-            this.$emit('call');
-          })
-        })
-      }
+      const apiCall = this.entity.id ? API.put(url, this.entity) : API.post(url, this.entity);
+      apiCall.then(res => {
+        if (res.code === '0') {
+          this.$message.success("操作成功");
+          this.dialogFormVisible = false;
+          this.load();
+          this.updateUserAndMenu(); // 更新菜单
+        } else {
+          this.$message.error(res.msg);
+        }
+      });
     },
     del(id) {
       API.delete(url + id).then(res => {
         if (res.code === '0') {
-          this.$message({
-            type: "success",
-            message: "操作成功"
-          })
+          this.$message.success("操作成功");
+          this.load();
+          this.updateUserAndMenu(); // 更新菜单
         } else {
-          this.$message({
-            type: "error",
-            message: res.msg
-          })
+          this.$message.error(res.msg);
         }
-        this.load()
-
-        // 重新请求用户基础数据
-        API.get("/api/user/" + this.user.id).then(res => {
-          let token = this.user.token
-          this.user = res.data
-          this.user.token = token
-          sessionStorage.setItem("user", JSON.stringify(this.user))
-          /// 设置菜单
+      });
+    },
+    // 更新用户权限和菜单
+    updateUserAndMenu() {
+      // 重新请求用户最新信息，包括权限
+      API.get("/api/user/" + this.user.id).then(res => {
+        if (res.code === '0') {
+          const newUser = res.data;
+          // 为了保持登录状态，需要保留 token
+          newUser.token = this.user.token;
+          sessionStorage.setItem("user", JSON.stringify(newUser)); // 更新缓存
+          this.user = newUser;
+          
+          // 重置路由并设置新菜单
+          resetRouter(JSON.parse(JSON.stringify(newUser.permission || [])));
+          // setMenu 已经被弃用，通过触发事件来让布局组件更新菜单
           this.$emit('call');
-        })
-
-      })
+        }
+      });
     }
   },
 };

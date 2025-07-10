@@ -4,15 +4,27 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!-- The favicon for the website, dynamically resolved by webpack. -->
     <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+    <!-- The title of the page, dynamically set by webpack's HtmlWebpackPlugin. -->
     <title><%= htmlWebpackPlugin.options.title %></title>
+    <!--
+      Loads the AMap (Gaode Maps) JavaScript API.
+      This is required for mapping components like LogisticsMap.vue to function.
+      A developer key is included in the script URL.
+    -->
     <script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=27a6506520db31103b5c94a0b7585a2e"></script>
   </head>
   <body>
+    <!--
+      This noscript tag provides a fallback message for users who have JavaScript disabled in their browser.
+      The application cannot run without JavaScript.
+    -->
     <noscript>
       <strong>We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
     </noscript>
+    <!-- This div is the root element where the Vue.js application will be mounted. -->
     <div id="app"></div>
-    <!-- built files will be auto injected -->
+    <!-- The bundled JavaScript and CSS files produced by the build process will be automatically injected here. -->
   </body>
 </html>

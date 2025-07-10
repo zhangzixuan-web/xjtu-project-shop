@@ -1,17 +1,20 @@
 <template>
   <div>
+    <!-- 搜索区域 -->
     <div style="padding: 5px 0">
       <el-input v-model="text" @keyup.enter.native="load" style="width: 200px" placeholder="输入评论内容查询">
         <i slot="prefix" class="el-input__icon el-icon-search"></i>
       </el-input>
     </div>
 
+    <!-- 评论数据表格 -->
     <el-table :data="tableData" border stripe style="width: 100%">
       <el-table-column prop="id" label="ID" width="80" sortable></el-table-column>
       <el-table-column prop="goodsName" label="商品名称"></el-table-column>
       <el-table-column prop="content" label="评论内容" width="300"></el-table-column>
       <el-table-column prop="username" label="评论人"></el-table-column>
       <el-table-column prop="time" label="评论时间"></el-table-column>
+      <!-- 操作列 -->
       <el-table-column fixed="right" label="操作" width="200">
         <template slot-scope="scope">
           <el-button type="primary" size="mini" @click="reply(scope.row.id)">回复</el-button>
@@ -19,6 +22,7 @@
       </el-table-column>
     </el-table>
 
+    <!-- 分页 -->
     <div style="margin-top: 10px">
       <el-pagination
           @size-change="handleSizeChange"
@@ -31,6 +35,7 @@
       </el-pagination>
     </div>
 
+    <!-- 回复评论弹窗 -->
     <el-dialog title="回复评论" :visible.sync="dialogFormVisible" width="40%">
       <el-form :model="replyForm" label-width="80px">
         <el-form-item label="内容">
@@ -48,6 +53,7 @@
 
 <script>
 import API from '../../utils/request'
+// 注意这里的接口是商家专用的
 const url = "/api/merchant/comment/"
 
 export default {
@@ -72,18 +78,20 @@ export default {
     this.load()
   },
   methods: {
+    // 加载评论列表
     load() {
       API.get(url + "page", {
         params: {
           pageNum: this.pageNum,
           pageSize: this.pageSize,
-          name: this.text
+          name: this.text // `name` 参数可能用于搜索评论内容
         }
       }).then(res => {
         this.tableData = res.data.records || []
         this.total = res.data.total
       })
     },
+    // 打开回复弹窗并准备回复数据
     reply(parentId) {
       const originalComment = this.tableData.find(c => c.id === parentId);
       this.replyForm = {
@@ -94,7 +102,9 @@ export default {
       };
       this.dialogFormVisible = true;
     },
+    // 提交回复
     submitReply() {
+      // 提交回复是调用通用的评论接口
       API.post("/api/comment", this.replyForm).then(res => {
         if (res.code === '0') {
           this.$message.success("回复成功");
@@ -104,10 +114,12 @@ export default {
         }
       })
     },
+    // 处理每页显示条数变化
     handleSizeChange(pageSize) {
       this.pageSize = pageSize
       this.load()
     },
+    // 处理页码变化
     handleCurrentChange(pageNum) {
       this.pageNum = pageNum
       this.load()

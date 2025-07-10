@@ -1,15 +1,20 @@
 <template>
   <div>
+    <!-- 搜索区域 -->
     <div style="padding: 5px 0">
       <el-input v-model="text" @keyup.enter.native="load" style="width: 200px"> <i slot="prefix" class="el-input__icon el-icon-search"></i></el-input>
 <!--      <el-button @click="add" type="primary" size="mini" style="margin: 10px">新增</el-button>-->
     </div>
+
+    <!-- 日志数据表格 -->
     <el-table :data="tableData" border stripe style="width: 100%">
       <el-table-column prop="content" label="操作内容"> </el-table-column>
       <el-table-column prop="time" label="操作时间"> </el-table-column>
       <el-table-column prop="user" label="操作人"> </el-table-column>
       <el-table-column prop="ip" label="IP"> </el-table-column>
     </el-table>
+
+    <!-- 分页 -->
     <div style="margin-top: 10px">
       <el-pagination
           @size-change="handleSizeChange"
@@ -28,7 +33,6 @@
 
 <script>
 import API from '../../utils/request'
-
 const url = "/api/log/"
 
 export default {
@@ -50,14 +54,17 @@ export default {
     this.load()
   },
   methods: {
+    // 处理每页显示条数变化
     handleSizeChange(pageSize) {
       this.pageSize = pageSize
       this.load()
     },
+    // 处理页码变化
     handleCurrentChange(pageNum) {
       this.pageNum = pageNum
       this.load()
     },
+    // 加载日志列表
     load() {
       API.get(url + "/page", {
         params: {

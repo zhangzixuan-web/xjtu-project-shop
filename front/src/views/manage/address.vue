@@ -1,9 +1,12 @@
 <template>
   <div>
+    <!-- 搜索和新增区域 -->
     <div style="padding: 5px 0">
       <el-input v-model="text" @keyup.enter.native="load" style="width: 200px"> <i slot="prefix" class="el-input__icon el-icon-search"></i></el-input>
       <el-button @click="add" type="primary" size="mini" style="margin: 10px">新增</el-button>
     </div>
+
+    <!-- 地址数据表格 -->
     <el-table :data="tableData" border stripe style="width: 100%">
       <el-table-column prop="id" label="ID" width="100" sortable> </el-table-column>
       <el-table-column prop="linkUser" label="联系人"></el-table-column>
@@ -11,6 +14,7 @@
       <el-table-column prop="linkPhone" label="联系电话"></el-table-column>
       <el-table-column prop="userId" label="关联用户id"></el-table-column>
 
+      <!-- 操作列 -->
       <el-table-column
           fixed="right"
           label="操作"
@@ -26,6 +30,8 @@
         </template>
       </el-table-column>
     </el-table>
+
+    <!-- 分页 -->
     <div style="margin-top: 10px">
       <el-pagination
         @size-change="handleSizeChange"
@@ -39,8 +45,8 @@
       </el-pagination>
     </div>
 
-    <!-- 弹窗   -->
-    <el-dialog title="信息" :visible.sync="dialogFormVisible" width="30%"
+    <!-- 新增/编辑弹窗 -->
+    <el-dialog title="地址信息" :visible.sync="dialogFormVisible" width="30%"
                :close-on-click-modal="false">
       <el-form :model="entity">
         <el-form-item label="联系人" label-width="150px">
@@ -62,7 +68,6 @@
             </el-option>
           </el-select>
         </el-form-item>
-
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取 消</el-button>
@@ -90,7 +95,7 @@ export default {
       entity: {},
       total: 0,
       dialogFormVisible: false,
-      users: []
+      users: [] // 用于存储所有用户，以供下拉选择
     };
   },
   created() {
@@ -98,8 +103,8 @@ export default {
     this.$emit('user', this.user);
     this.load()
     API.get("/api/user").then(res => {
-      this.users = res.data
-    })
+      this.users = res.data;
+    });
   },
   methods: {
     fileSuccessUpload(res) {
@@ -108,13 +113,15 @@ export default {
       console.log(res)
     },
     handleSizeChange(pageSize) {
-      this.pageSize = pageSize
-      this.load()
+      this.pageSize = pageSize;
+      this.load();
     },
+    // 处理页码变化
     handleCurrentChange(pageNum) {
-      this.pageNum = pageNum
-      this.load()
+      this.pageNum = pageNum;
+      this.load();
     },
+    // 加载地址列表
     load() {
        API.get(url + "/page", {
           params: {
@@ -127,16 +134,19 @@ export default {
           this.total = res.data.total
        })
     },
+    // 打开新增弹窗
     add() {
       this.entity = {}
       this.fileList = []
       this.dialogFormVisible = true
     },
+    // 打开编辑弹窗
     edit(obj) {
       this.entity = JSON.parse(JSON.stringify(obj))
       this.fileList = []
       this.dialogFormVisible = true
     },
+    // 保存（新增或修改）
     save() {
       if (!this.entity.id) {
         API.post(url, this.entity).then(res => {

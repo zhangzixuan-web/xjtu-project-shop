@@ -1,5 +1,6 @@
 <template>
   <div class="merchant-home-container">
+    <!-- 欢迎卡片 -->
     <el-card shadow="never" class="welcome-card">
       <div class="welcome-content">
         <img src="https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png" alt="avatar" class="avatar" />
@@ -10,7 +11,9 @@
       </div>
     </el-card>
 
+    <!-- 商家数据统计行 -->
     <el-row :gutter="20" class="stats-row">
+      <!-- 总销量 -->
       <el-col :span="12">
         <el-card shadow="hover" class="stat-card" style="background: linear-gradient(135deg, #ffe4b5 0%, #ffc680 100%);">
           <div class="stat-content">
@@ -22,6 +25,7 @@
           </div>
         </el-card>
       </el-col>
+      <!-- 总销售额 -->
       <el-col :span="12">
         <el-card shadow="hover" class="stat-card" style="background: linear-gradient(135deg, #ffd59e 0%, #ffb770 100%);">
           <div class="stat-content">
@@ -35,13 +39,16 @@
       </el-col>
     </el-row>
 
+    <!-- 分类销量图表行 -->
     <el-row :gutter="20" style="margin-top: 20px;">
       <el-col :span="24">
         <el-card shadow="never" class="chart-card">
           <div slot="header" class="card-header">
             <span>分类商品销量统计</span>
           </div>
+          <!-- ECharts 饼图容器 -->
           <div v-if="chartData.length" id="category-pie" :style="{ width: '100%', height: '400px' }"></div>
+          <!-- 无数据时显示 -->
           <div v-else class="empty-chart">暂无数据</div>
         </el-card>
       </el-col>
@@ -73,7 +80,9 @@ export default {
     this.drawPieChart();
   },
   methods: {
+    // 绘制分类销量饼图
     drawPieChart() {
+      // 商家专用接口
       API.get('/api/merchant/stats/category').then(res => {
         if (res.code === '0' && res.data.length) {
           this.chartData = res.data;
@@ -116,7 +125,9 @@ export default {
         }
       });
     },
+    // 加载商家的统计数据（总销量、总销售额）
     loadStats() {
+      // 从商家专用接口获取统计数据
       API.get('/api/merchant/stats').then(res => {
         if (res.code === '0') {
           this.stats = res.data;
@@ -128,14 +139,15 @@ export default {
 </script>
 
 <style scoped>
+/* 定义 CSS 变量以方便主题管理 */
 :root {
-  --primary-bg: #fff8ec;
-  --card-bg: #fffdf9;
-  --accent: #ff9b3c;
-  --accent-dark: #d87d29;
-  --text-primary: #5c3a1d;
-  --text-secondary: #8c6e54;
-  --border-light: #f2e2c9;
+  --primary-bg: #fff8ec; /* 主背景色 */
+  --card-bg: #fffdf9;    /* 卡片背景色 */
+  --accent: #ff9b3c;      /* 主题强调色 */
+  --accent-dark: #d87d29; /* 深色强调色 */
+  --text-primary: #5c3a1d; /* 主要文字颜色 */
+  --text-secondary: #8c6e54; /* 次要文字颜色 */
+  --border-light: #f2e2c9; /* 边框颜色 */
 }
 .merchant-home-container {
   padding: 20px;
@@ -202,6 +214,7 @@ export default {
   color: var(--text-secondary);
   margin: 0;
 }
+/* 图表为空时的占位符样式 */
 .empty-chart {
   display: flex;
   justify-content: center;

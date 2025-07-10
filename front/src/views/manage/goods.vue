@@ -1,9 +1,12 @@
 <template>
   <div>
+    <!-- 搜索和新增区域 -->
     <div style="padding: 5px 0">
       <el-input v-model="text" @keyup.enter.native="load" style="width: 200px"> <i slot="prefix" class="el-input__icon el-icon-search"></i></el-input>
       <el-button @click="add" type="primary" size="mini" style="margin: 10px">新增</el-button>
     </div>
+
+    <!-- 商品数据表格 -->
     <el-table :data="tableData" border stripe style="width: 100%">
       <el-table-column prop="id" label="ID" width="100" sortable> </el-table-column>
       <el-table-column prop="name" label="商品名称" width="150"></el-table-column>
@@ -28,6 +31,7 @@
       <el-table-column prop="sales" label="销量"></el-table-column>
       <el-table-column prop="createTime" label="创建时间"></el-table-column>
 
+      <!-- 操作列 -->
       <el-table-column
           fixed="right"
           label="操作"
@@ -43,6 +47,8 @@
         </template>
       </el-table-column>
     </el-table>
+
+    <!-- 分页 -->
     <div style="margin-top: 10px">
       <el-pagination
         @size-change="handleSizeChange"
@@ -90,6 +96,7 @@
               inactive-color="#ccc">
           </el-switch>
         </el-form-item>
+        <!-- 图片上传 -->
         <el-form-item label="图片" label-width="150px">
           <el-upload action="http://localhost:9999/files/upload" multiple :on-success="handleSuccess" ref="upload">
             <el-button size="small" type="primary">点击上传</el-button>
@@ -113,10 +120,9 @@ export default {
   name: "Goods",
   data() {
     return {
-      fileList: [],
-      options: [],
+      fileList: [],   // 已上传文件列表
+      options: [],    // 分类选项
       text: '',
-      user: {},
       tableData: [],
       pageNum: 1,
       pageSize: 10,
@@ -130,18 +136,23 @@ export default {
     this.load()
   },
   methods: {
+    // 文件上传成功钩子
     handleSuccess(res) {
-      let url = "http://localhost:9999/files/" + res.data
-      this.fileList.push(url)
+      // res.data 包含文件标识，拼接成可访问的 URL
+      let url = "http://localhost:9999/files/" + res.data;
+      this.fileList.push(url);
     },
+    // 处理每页显示条数变化
     handleSizeChange(pageSize) {
-      this.pageSize = pageSize
-      this.load()
+      this.pageSize = pageSize;
+      this.load();
     },
+    // 处理页码变化
     handleCurrentChange(pageNum) {
-      this.pageNum = pageNum
-      this.load()
+      this.pageNum = pageNum;
+      this.load();
     },
+    // 加载商品列表和分类信息
     load() {
        API.get(url + "/page", {
           params: {
@@ -150,31 +161,35 @@ export default {
             name: this.text
           }
        }).then(res => {
-          this.tableData = res.data.records || []
-          this.total = res.data.total
+          this.tableData = res.data.records || [];
+          this.total = res.data.total;
 
          this.tableData.forEach(item => {
-           // 处理下表格的图片显示
+           // 处理表格图片显示，将imgs字段从JSON字符串转为数组
            if (!item.imgs) {
-             item.imgs = ['']
+             item.imgs = ['']; // 提供一个默认空图片，避免控制台报错
            } else {
              item.imgs = JSON.parse(item.imgs)
            }
          })
        })
 
+      // 加载分类数据
       API.get("/api/category").then(res => {
-        this.options = res.data
-      })
+        this.options = res.data;
+      });
     },
+    // 打开新增弹窗
     add() {
-      this.entity = {}
-      this.fileList = []
+      this.entity = {};
+      this.fileList = [];
+      // 清空已上传文件列表
       if(this.$refs['upload']) {
-        this.$refs['upload'].clearFiles()
+        this.$refs['upload'].clearFiles();
       }
-      this.dialogFormVisible = true
+      this.dialogFormVisible = true;
     },
+    // 打开编辑弹窗
     edit(obj) {
       console.log(this.$refs)
       this.entity = JSON.parse(JSON.stringify(obj))
@@ -182,11 +197,13 @@ export default {
       this.dialogFormVisible = true
       this.$nextTick(() => {
         if(this.$refs['upload']) {
-          this.$refs['upload'].clearFiles()
+          this.$refs['upload'].clearFiles();
         }
-      })
+      });
     },
+    // 保存（新增或修改）
     save() {
+      // 如果有新上传的文件，将其更新到entity
       if (this.fileList.length) {
         this.entity.imgs = JSON.stringify(this.fileList)
       }
@@ -227,6 +244,7 @@ export default {
         })
       }
     },
+    // 删除
     del(id) {
       API.delete(url + id).then(res => {
         this.$message({

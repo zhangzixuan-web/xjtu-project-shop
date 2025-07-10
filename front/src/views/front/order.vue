@@ -1,6 +1,6 @@
 <template>
   <div>
-    <!-- 标签页 -->
+    <!-- 订单状态筛选标签页 -->
     <el-tabs v-model="activeName" @tab-click="handleClick">
       <el-tab-pane label="全部订单" name="all"></el-tab-pane>
       <el-tab-pane label="待支付" name="待支付"></el-tab-pane>
@@ -9,18 +9,19 @@
       <el-tab-pane label="已完成" name="已完成"></el-tab-pane>
     </el-tabs>
 
-    <!-- 条件渲染：如果有数据，则显示表格 -->
+    <!-- 如果有订单数据，则显示表格 -->
     <div v-if="tableData && tableData.length">
 
-      <!-- 订单主表格 -->
+      <!-- 订单列表主表格 -->
       <el-table :data="tableData" stripe style="width: 100%">
 
-        <!-- 展开行，用于显示订单内的商品列表 -->
+        <!-- 可展开行，用于显示订单内的商品详情 -->
         <el-table-column type="expand">
           <template slot-scope="props">
             <h4>订单商品详情</h4>
-            <!-- 这是一个内嵌的表格，显示该订单的所有商品 -->
+            <!-- 内嵌表格，显示该订单的所有商品 -->
             <el-table :data="props.row.carts" :show-header="false">
+              <!-- 商品图片 -->
               <el-table-column width="150" align="center">
                 <template slot-scope="scope">
                   <a :href="['/front/goods?id=' + scope.row.goods.id]">
@@ -31,9 +32,11 @@
                   </a>
                 </template>
               </el-table-column>
+              <!-- 商品名称、单价、数量 -->
               <el-table-column prop="goods.name" label="商品名称" width="200" align="center"></el-table-column>
               <el-table-column prop="goods.realPrice" label="单价" width="150" align="center"></el-table-column>
               <el-table-column prop="count" label="数量" width="180" align="center"></el-table-column>
+              <!-- 操作：去评价 -->
               <el-table-column label="操作" align="center">
                 <template slot-scope="scope" v-if="props.row.state === '已完成'">
                   <el-button type="primary" size="mini" @click="preComment(scope.row.goods.id)">去评价</el-button>
@@ -43,7 +46,7 @@
           </template>
         </el-table-column>
 
-        <!-- 主表格的列 -->
+        <!-- 主表格的列定义 -->
         <el-table-column prop="orderNo" label="订单编号" width="220" align="center"></el-table-column>
         <el-table-column prop="totalPrice" label="订单总价" width="150" align="center"></el-table-column>
         <el-table-column prop="state" label="订单状态" width="150" align="center"></el-table-column>
@@ -71,12 +74,12 @@
 
     </div>
 
-    <!-- 条件渲染：如果没数据，则显示空状态提示 -->
+    <!-- 如果没有数据，显示空状态提示 -->
     <div v-else>
       <el-empty description="暂无订单数据"></el-empty>
     </div>
 
-    <!-- 分页组件，放在表格和空状态的外部 -->
+    <!-- 分页组件 -->
     <div style="margin-top: 20px; text-align: center;">
       <el-pagination
           background
@@ -104,22 +107,14 @@
     </el-dialog>
 
     <!-- 物流信息弹窗 -->
-    <!-- 【正确版本】物流信息对话框 -->
     <el-dialog title="物流详情" :visible.sync="logisticsVisible" width="60%">
-
-      <!-- 如果有物流数据，就显示地图和时间线 -->
+      <!-- 如果有物流数据，则显示地图和时间线 -->
       <div v-if="logisticsData && logisticsData.length > 0">
-
-        <!-- 把我们的地图组件放在这里 -->
+        <!-- 物流地图组件 -->
         <LogisticsMap :tracking-data="logisticsData" />
-
-
-
       </div>
-
-      <!-- 如果没有物流数据，就显示“暂无信息” -->
+      <!-- 如果没有物流数据，显示空状态 -->
       <el-empty v-else description="暂无物流信息"></el-empty>
-
     </el-dialog>
 
   </div>
@@ -127,12 +122,12 @@
 
 <script>
 import API from "@/utils/request";
-import LogisticsMap from '@/components/LogisticsMap.vue'; // 【核心】引入我们自己的地图组件
+import LogisticsMap from '@/components/LogisticsMap.vue'; // 引入自定义的物流地图组件
 
 export default {
-  name: "Order", // 给组件一个名字，好习惯
+  name: "Order",
   components: {
-    LogisticsMap // 【核心】在这里注册地图组件
+    LogisticsMap // 注册物流地图组件
   },
   data() {
     return {
@@ -140,97 +135,86 @@ export default {
       pageNum: 1,
       pageSize: 10,
       total: 0,
-      activeName: 'all',
-      tableData: [],
-      // payData: [], // 这个字段似乎没被使用，可以考虑删除
-      commentData: [],
-      entity: {},
-      state: 'all',
-      dialogFormVisible: false, // 这是评价弹窗的
-
-      // --- 物流功能相关的data ---
-      logisticsVisible: false, // 控制物流弹窗的显示/隐藏
-      logisticsData: []      // 存放物流轨迹数据
+      activeName: 'all', // 当前选中的 Tab 名称
+      tableData: [],     // 订单列表数据
+      commentData: [],   // 评价数据（似乎未被充分使用）
+      entity: {},        // 用于存储评价内容的实体
+      state: 'all',      // 当前筛选的订单状态
+      dialogFormVisible: false, // 评价弹窗的显示状态
+      logisticsVisible: false, // 物流弹窗的显示状态
+      logisticsData: []      // 物流轨迹数据
     }
   },
   created() {
     this.user = sessionStorage.getItem("user") ? JSON.parse(sessionStorage.getItem("user")) : {}
     if (!this.user.id) {
-      this.$message({
-        type: 'warning',
-        message: '请登录！'
-      })
-      // 如果未登录，可以跳转到登录页
-      // this.$router.push('/login');
+      this.$message.warning('请登录！');
       return;
     }
     this.load();
   },
   methods: {
-    // 【核心】查看物流的方法
+    // 查看物流的方法
     async showLogistics(orderId) {
       try {
         const res = await API.get("/api/order/" + orderId + "/tracking");
-        this.logisticsData = res; // 直接赋值，因为axios已经帮我们解析了
+        this.logisticsData = res; // 假设 res.data 是物流数据数组
       } catch (e) {
         console.error("获取物流信息失败:", e);
-        this.logisticsData = []; // 清空数据
+        this.logisticsData = []; // 出错时清空数据
         this.$message.error('获取物流信息失败，请稍后重试');
       }
       this.logisticsVisible = true; // 打开弹窗
     },
 
-    // --- 下面是你原来就有的方法，保持不变 ---
+    // 准备评价，打开弹窗
     preComment(id) {
       this.entity = {}
-      this.entity.foreignId = id
+      this.entity.foreignId = id // 设置评价关联的商品ID
       this.dialogFormVisible = true
     },
+    // 提交评价
     comment() {
       if (!this.entity.content) {
-        this.$message({
-          type: 'warning',
-          message: '请填写内容'
-        })
+        this.$message.warning('请填写内容');
         return
       }
       API.post("/api/message", this.entity).then(res => {
         if (res.code === '0') {
-          this.$message({
-            type: 'success',
-            message: '评价成功'
-          })
+          this.$message.success('评价成功');
           this.dialogFormVisible = false
-          this.load()
+          this.load() // 重新加载订单，可能会更新评价状态
         }
       })
     },
+    // 确认收货
     confirm(id) {
       API.put("/api/order", {id: id, state: '已完成'}).then(res => {
         if (res.code === '0') {
-          this.$message({
-            type: 'success',
-            message: '操作成功'
-          })
-          this.load()
+          this.$message.success('操作成功');
+          this.load() // 重新加载订单列表
         }
       })
     },
+    // 点击 Tab 切换订单状态
     handleClick(tab) {
       this.state = tab.name;
-      this.pageNum = 1; // 切换tab时，重置页码到第一页
+      this.pageNum = 1; // 切换状态时重置到第一页
       this.load();
     },
+    // 处理每页显示条数变化
     handleSizeChange(pageSize) {
       this.pageSize = pageSize
       this.load()
     },
+    // 处理页码变化
     handleCurrentChange(pageNum) {
       this.pageNum = pageNum
       this.load()
     },
+    // 加载订单数据
     load() {
-      // 切换tab时，'all' 应该被转换为空字符串发送给后端
+      // 当 state 为 'all' 时，传给后端空字符串，表示查询全部
       const queryState = this.state === 'all' ? '' : this.state;
 
       API.get("/api/order/page/front", {
@@ -241,89 +225,35 @@ export default {
         }
       }).then(res => {
         this.tableData = res.data.records;
-        this.total = res.data.total; // 更新总条数，用于分页
+        this.total = res.data.total;
 
-        this.commentData = []; // 每次加载前清空评价数据
+        this.commentData = []; // 每次加载前清空
 
         this.tableData.forEach(v => {
-          // 这里有一个潜在的bug，如果v.carts是null或空字符串，JSON.parse会报错
+          // 安全地解析购物车 JSON 字符串
           try {
-            v.carts = JSON.parse(v.carts);
-          } catch(e) {
-            v.carts = []; // 解析失败则置为空数组
+            if (v.carts && typeof v.carts === 'string') {
+              v.carts = JSON.parse(v.carts);
+              v.carts.forEach(c => {
+                if (c.goods.imgs && typeof c.goods.imgs === 'string') {
+                  c.goods.imgs = JSON.parse(c.goods.imgs);
+                }
+              });
+            }
+          } catch (e) {
+            console.error("解析订单中的 carts 数据失败:", e);
+            v.carts = []; // 解析失败则置为空数组，防止页面渲染错误
           }
-
-          v.carts.forEach(item => {
-            if (!item.goods.imgs) {
-              item.goods.imgs = ['']
-            } else {
-              try {
-                item.goods.imgs = JSON.parse(item.goods.imgs)
-              } catch(e) {
-                item.goods.imgs = [''];
-              }
-            }
-
-            // '已完成' 状态的数据才加入待评价列表
-            if (v.state === '已完成') {
-              item.goods.orderNo = v.orderNo;
-              this.commentData.push(item.goods);
-            }
-          })
-        })
-      })
-    },
-    pay(id) {
-      API.put("/api/order/pay/" + id).then(res => {
-        if (res.code === '0') {
-          this.$message({
-            type: 'success',
-            message: '付款成功'
-          })
-          this.load()
-        } else {
-          this.$message({
-            type: 'error',
-            message: res.msg
-          })
-        }
-      })
-    },
-    cancel(id) {
-      API.put("/api/order", {id: id, state: '已取消'}).then(res => {
-        if (res.code === '0') {
-          this.$message({
-            type: 'success',
-            message: '操作成功'
-          })
-          this.load()
-        }
-      })
-    },
-    del(id) {
-      API.delete("/api/order/" + id).then(res => {
-        if (res.code === '0') {
-          this.$message({
-            type: 'success',
-            message: '操作成功'
-          })
-          this.load()
-        }
+        });
       })
     }
   }
 }
 </script>
 <style scoped>
-.el-table-column {
-  text-align: center;  /* 将所有列内容居中 */
-}
-
-.el-table__header {
-  text-align: center;  /* 将表头内容居中 */
-}
-
-.el-table__body {
-  text-align: center;  /* 将表格主体内容居中 */
+/* 增加一些样式来美化内嵌表格 */
+.el-table__expanded-cell {
+  padding: 20px;
+  background-color: #f5f7fa;
 }
 </style>

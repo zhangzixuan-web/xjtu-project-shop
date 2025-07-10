@@ -1,6 +1,9 @@
 <template>
+  <!-- 注册页面容器 -->
   <div class="bakery-register-container">
+    <!-- 注册卡片 -->
     <div class="bakery-register-card">
+      <!-- 左侧内容：Logo 和图片 -->
       <div class="bakery-register-left">
         <div class="bakery-register-logo">
           <h1>Sweet<span>Delight</span></h1>
@@ -11,33 +14,40 @@
         </div>
       </div>
       
+      <!-- 右侧内容：注册表单 -->
       <div class="bakery-register-right">
         <h2 class="bakery-register-title">创建账号</h2>
         <p class="bakery-register-subtitle">请填写以下信息完成注册</p>
         
         <div class="bakery-register-form">
+          <!-- 用户名输入 -->
           <div class="bakery-form-group">
             <label>用户名</label>
             <input type="text" class="bakery-input" placeholder="请输入用户名" v-model="user.username">
           </div>
           
+          <!-- 手机号输入 -->
           <div class="bakery-form-group">
             <label>手机号</label>
             <input type="tel" class="bakery-input" placeholder="请输入手机号" v-model="user.phone">
           </div>
           
+          <!-- 密码输入 -->
           <div class="bakery-form-group">
             <label>密码</label>
             <input type="password" class="bakery-input" placeholder="请输入密码" v-model="user.password">
           </div>
           
+          <!-- 确认密码输入 -->
           <div class="bakery-form-group">
             <label>确认密码</label>
             <input type="password" class="bakery-input" placeholder="请确认密码" v-model="user.confirm">
           </div>
           
+          <!-- 注册按钮 -->
           <button class="bakery-btn bakery-register-btn" @click="register">注册</button>
           
+          <!-- 登录链接 -->
           <div class="bakery-register-footer">
             <p>已有账号? <span class="bakery-link" @click="$router.push('/login')">立即登录</span></p>
           </div>
@@ -54,11 +64,13 @@ export default {
   name: "Register",
   data() {
     return {
-      user: {}
+      user: {} // 存储用户输入的注册信息
     }
   },
   methods: {
+    // 注册方法
     register() {
+      // 对输入进行一系列校验
       if (!this.user.username) {
         this.$message.error("请输入用户名");
         return;
@@ -89,13 +101,16 @@ export default {
         return;
       }
 
+      // 发送注册请求到后端
       API.post("/api/user/register", this.user).then(res => {
         if (res.code === '0') {
+          // 注册成功后提示用户并延迟跳转到登录页
           this.$message.success("注册成功！即将跳转到登录页...");
           setTimeout(() => {
             this.$router.replace("/login");
           }, 1500);
         } else {
+          // 如果注册失败，显示后端返回的错误信息
           this.$message.error(res.msg);
         }
       })
@@ -105,6 +120,7 @@ export default {
 </script>
 
 <style scoped>
+/* 注册页面容器样式 */
 .bakery-register-container {
   display: flex;
   justify-content: center;
@@ -114,6 +130,7 @@ export default {
   background-color: var(--background-color);
 }
 
+/* 注册卡片样式 */
 .bakery-register-card {
   display: flex;
   width: 900px;
@@ -124,6 +141,7 @@ export default {
   overflow: hidden;
 }
 
+/* 左侧内容区域样式 */
 .bakery-register-left {
   flex: 1;
   background-color: var(--accent-color);
@@ -135,6 +153,7 @@ export default {
   position: relative;
 }
 
+/* Logo 样式 */
 .bakery-register-logo {
   text-align: center;
   margin-bottom: 30px;
@@ -157,6 +176,7 @@ export default {
   font-size: 16px;
 }
 
+/* 图片区域样式 */
 .bakery-register-image {
   width: 80%;
   z-index: 1;
@@ -171,6 +191,7 @@ export default {
   box-shadow: var(--box-shadow);
 }
 
+/* 右侧表单区域样式 */
 .bakery-register-right {
   flex: 1;
   padding: 40px;
@@ -194,6 +215,7 @@ export default {
   flex: 1;
 }
 
+/* 表单组样式 */
 .bakery-form-group {
   margin-bottom: 20px;
 }
@@ -205,6 +227,7 @@ export default {
   font-weight: 500;
 }
 
+/* 输入框样式 */
 .bakery-input {
   width: 100%;
   padding: 12px 15px;
@@ -219,6 +242,7 @@ export default {
   outline: none;
 }
 
+/* 注册按钮样式 */
 .bakery-register-btn {
   width: 100%;
   padding: 14px;
@@ -227,6 +251,7 @@ export default {
   margin: 20px 0;
 }
 
+/* 底部链接样式 */
 .bakery-register-footer {
   text-align: center;
   color: #666;
@@ -238,6 +263,7 @@ export default {
   font-weight: 500;
 }
 
+/* 响应式布局：小屏幕下隐藏左侧图片 */
 @media (max-width: 768px) {
   .bakery-register-card {
     flex-direction: column;

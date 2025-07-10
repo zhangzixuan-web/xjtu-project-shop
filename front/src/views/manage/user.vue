@@ -1,9 +1,12 @@
 <template>
   <div>
+    <!-- 搜索和新增区域 -->
     <div style="padding: 5px 0">
-      <el-input v-model="text" @keyup.enter.native="load" style="width: 200px"> <i slot="prefix" class="el-input__icon el-icon-search"></i></el-input>
+      <el-input v-model="text" @keyup.enter.native="load" style="width: 200px" placeholder="请输入名称"> <i slot="prefix" class="el-input__icon el-icon-search"></i></el-input>
       <el-button @click="add" type="primary" size="mini" style="margin: 10px">新增</el-button>
     </div>
+
+    <!-- 用户数据表格 -->
     <el-table :data="tableData" border stripe style="width: 100%">
       <el-table-column prop="id" label="ID"></el-table-column>
       <el-table-column prop="username" label="用户名"></el-table-column>
@@ -12,9 +15,10 @@
       <el-table-column prop="phone" label="电话"></el-table-column>
       <el-table-column prop="address" label="地址"></el-table-column>
       <el-table-column prop="age" label="年龄"></el-table-column>
-      <el-table-column
-          label="角色">
+      <!-- 角色分配列 -->
+      <el-table-column label="角色">
         <template slot-scope="scope">
+          <!-- 下拉多选框，用于为用户分配角色 -->
           <el-select v-model="scope.row.role" value-key="id" multiple placeholder="请选择" @change="changeRole(scope.row)">
             <el-option
                 v-for="item in options"
@@ -25,6 +29,7 @@
           </el-select>
         </template>
       </el-table-column>
+      <!-- 操作列 -->
       <el-table-column
           fixed="right"
           label="操作"
@@ -41,6 +46,8 @@
         </template>
       </el-table-column>
     </el-table>
+
+    <!-- 分页 -->
     <div style="margin-top: 10px">
       <el-pagination
           @size-change="handleSizeChange"
@@ -54,7 +61,7 @@
       </el-pagination>
     </div>
 
-    <!-- 弹窗   -->
+    <!-- 新增/编辑用户信息的弹窗 -->
     <el-dialog title="用户信息" :visible.sync="dialogFormVisible" width="30%"
                :close-on-click-modal="false" :close-on-press-escape="false" :show-close="false">
       <el-form :model="entity">
@@ -94,35 +101,39 @@ export default {
   name: "User",
   data() {
     return {
-      options: [],
-      text: '',
-      user: {},
-      tableData: [],
+      options: [],      // 角色列表，用于下拉框
+      text: '',         // 搜索文本
+      tableData: [],    // 用户数据
       pageNum: 1,
       pageSize: 10,
       total: 0,
-      entity: {},
+      entity: {},       // 弹窗表单绑定的对象
       dialogFormVisible: false
     };
   },
   created() {
-    // this.user = sessionStorage.getItem("user") ? JSON.parse(sessionStorage.getItem("user")) : {}
-    this.load()
+    this.load();
   },
   methods: {
+    // 当用户角色发生变化时
     changeRole(row) {
       this.entity = JSON.parse(JSON.stringify(row));
+      // 直接调用 save 方法保存更改
       this.save();
     },
+    // 处理每页显示条数变化
     handleSizeChange(pageSize) {
       this.pageSize = pageSize
       this.load()
     },
+    // 处理页码变化
     handleCurrentChange(pageNum) {
       this.pageNum = pageNum
       this.load()
     },
+    // 加载用户列表和角色列表
     load() {
+      // 获取用户分页数据
       API.get(url + "/page", {
         params: {
           pageNum: this.pageNum,
@@ -132,69 +143,46 @@ export default {
       }).then(res => {
         this.tableData = res.data.records || []
         this.total = res.data.total
-      })
+      });
 
+      // 获取所有角色数据，用于下拉框
       API.get("/api/role").then(res => {
         this.options = res.data
-      })
+      });
     },
+    // 打开新增弹窗
     add() {
       this.entity = {}
       this.dialogFormVisible = true
     },
+    // 打开编辑弹窗
     edit(obj) {
       this.entity = JSON.parse(JSON.stringify(obj))
       this.dialogFormVisible = true
     },
+    // 保存（新增或修改）
     save() {
-      if (!this.entity.id) {
-        API.post(url, this.entity).then(res => {
-          if (res.code === '0') {
-            this.$message({
-              type: "success",
-              message: "操作成功"
-            })
-          } else {
-            this.$message({
-              type: "error",
-              message: res.msg
-            })
-          }
-          this.load()
-          this.dialogFormVisible = false
-        })
-      } else {
-        API.put(url, this.entity).then(res => {
-          if (res.code === '0') {
-            this.$message({
-              type: "success",
-              message: "操作成功"
-            })
-          } else {
-            this.$message({
-              type: "error",
-              message: res.msg
-            })
-          }
-          this.load()
-          this.dialogFormVisible = false
-        })
-      }
+      // 根据有无id判断是新增还是修改
+      const apiCall = this.entity.id ? API.put(url, this.entity) : API.post(url, this.entity);
+      apiCall.then(res => {
+        if (res.code === '0') {
+          this.$message.success("操作成功");
+          this.load();
+          this.dialogFormVisible = false;
+        } else {
+          this.$message.error(res.msg);
+        }
+      });
     },
+    // 删除用户
     del(id) {
       API.delete(url + id).then(res => {
         if (res.code === '0') {
-          this.$message({
-            type: "success",
-            message: "操作成功"
-          })
+          this.$message.success("操作成功");
+          this.load();
         } else {
-          this.$message({
-            type: "error",
-            message: res.msg
-          })
+          this.$message.error(res.msg);
         }
-        this.load()
       })
     }
   },

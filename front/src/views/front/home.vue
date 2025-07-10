@@ -1,6 +1,6 @@
 <template>
   <div>
-    <!-- Hero Banner with Video -->
+    <!-- 英雄区域：包含视频背景和主要宣传语 -->
     <div class="bakery-hero" style="margin-top: 20px">
       <el-row type="flex" align="middle" style="height: 100%;">
         <el-col :span="10" class="hero-text-content">
@@ -20,10 +20,11 @@
       </el-row>
     </div>
 
-    <!-- Category Icons -->
+    <!-- 商品分类图标区域 -->
     <div style="margin: 40px 0">
       <el-row :gutter="20">
         <el-col :span="6" v-for="(category, index) in categoryIcons" :key="index">
+          <!-- 点击图标可以按分类筛选商品 -->
           <div class="category-icon-box" @click="getGoodsByCategory(categories[index] ? categories[index].id : 0)">
             <div class="category-icon">
               <img :src="category.icon" alt="Category Icon" class="category-icon-img">
@@ -34,18 +35,21 @@
       </el-row>
     </div>
 
-    <!-- Special Bakery Products -->
+    <!-- 最新产品展示区域 -->
     <div style="margin: 60px 0">
       <div class="section-label">LATEST PRODUCTS</div>
       <h2 class="bakery-section-title">Special Bakery Products</h2>
       
       <el-row :gutter="20">
+        <!-- 遍历显示商品卡片 -->
         <el-col :span="6" v-for="item in tableData" :key="item.id">
+          <!-- 点击卡片跳转到商品详情页 -->
           <div class="bakery-card" @click="goodsDetail(item.id)">
             <div class="bakery-card-img-container">
               <el-image :src="item.imgs[0]" class="bakery-card-img" fit="contain"></el-image>
             </div>
             <div class="bakery-card-title">
+              <!-- 使用 Tooltip 防止商品名称过长时显示不全 -->
               <el-tooltip :content="item.name" placement="bottom" effect="light">
                 <span>{{ item.name }}</span>
               </el-tooltip>
@@ -58,7 +62,7 @@
         </el-col>
       </el-row>
 
-      <!-- Pagination -->
+      <!-- 分页组件 -->
       <div style="text-align: center; margin-top: 20px">
         <el-pagination
             small
@@ -74,7 +78,7 @@
       </div>
     </div>
 
-    <!-- Discount Carousel Section -->
+    <!-- 折扣信息轮播图 -->
     <div class="discount-carousel-section">
         <el-carousel height="400px" indicator-position="outside" arrow="always">
             <el-carousel-item v-for="(item, index) in carouselImages" :key="index">
@@ -83,7 +87,7 @@
         </el-carousel>
     </div>
     
-    <!-- Discount Banner -->
+    <!-- 折扣横幅广告 -->
     <div class="discount-banner">
       <el-row type="flex" align="middle">
         <el-col :span="8">
@@ -102,13 +106,14 @@
       </el-row>
     </div>
 
-    <!-- Featured Products -->
+    <!-- 推荐商品区域 -->
     <div style="margin: 60px 0">
       <div class="section-label">FEATURED ITEMS</div>
       <h2 class="bakery-section-title">Featured Products</h2>
       
       <div class="featured-products-slider">
         <el-row :gutter="20">
+          <!-- 显示前6个推荐商品 -->
           <el-col :span="4" v-for="item in recommend.slice(0, 6)" :key="item.id">
             <div class="bakery-card" @click="goodsDetail(item.id)">
               <div class="bakery-card-img-container">
@@ -122,6 +127,7 @@
             </div>
           </el-col>
         </el-row>
+        <!-- 轮播控制器 (功能待实现) -->
         <div class="slider-controls">
           <i class="el-icon-arrow-left slider-arrow"></i>
           <i class="el-icon-arrow-right slider-arrow"></i>
@@ -129,12 +135,13 @@
       </div>
     </div>
 
-    <!-- Blog Posts -->
+    <!-- 博客文章区域 -->
     <div style="margin: 60px 0">
       <div class="section-label">LATEST BLOG POST</div>
       <h2 class="bakery-section-title">Latest News & Article</h2>
       
       <el-row :gutter="20">
+        <!-- 静态博客卡片 -->
         <el-col :span="8">
           <div class="blog-card">
             <div class="blog-image">
@@ -168,7 +175,7 @@
       </el-row>
     </div>
 
-    <!-- Reservation Form -->
+    <!-- 预订表单区域 (功能待实现) -->
     <div style="margin: 60px 0">
       <div class="section-label">BOOK RESERVATION</div>
       <h2 class="bakery-section-title">Book Our Reservation</h2>
@@ -213,29 +220,24 @@
 <script>
 import API from "@/utils/request";
 
-const url = "/api/video/"
-
 export default {
   name: "Home",
   data() {
     return {
-      sales: [],
-      recommend: [],
-      tableData: [],
-      activeIndex: 0,
-      imgList: [],
-      user: {},
-      categories: [],
-      pageNum: 1,
-      pageSize: 8,
-      total: 0,
-      // 轮播图数据
+      recommend: [],     // 推荐商品数据
+      tableData: [],     // 当前页显示的商品数据
+      user: {},          // 当前登录的用户信息
+      categories: [],    // 商品分类数据
+      pageNum: 1,        // 当前页码
+      pageSize: 8,       // 每页显示的条数
+      total: 0,          // 商品总数
+      // 轮播图图片（本地资源）
       carouselImages: [
         { src: require('@/assets/轮播-1.jpg') },
         { src: require('@/assets/轮播-2.jpg') },
         { src: require('@/assets/轮播-3.jpg') }
       ],
-      // 分类图标数据
+      // 分类图标（本地资源）
       categoryIcons: [
         { name: '面包', icon: require('@/assets/icon1.png') },
         { name: '蛋糕', icon: require('@/assets/icon2.jpg') },
@@ -245,7 +247,9 @@ export default {
     };
   },
   created() {
+    // 从 sessionStorage 中获取用户信息
     this.user = sessionStorage.getItem("user") ? JSON.parse(sessionStorage.getItem("user")) : {}
+    // 加载页面所需数据
     this.load()
   },
   methods: {
@@ -260,7 +264,6 @@ export default {
       if (!id && this.categories.length > 0) {
         id = this.categories[0].id;
       }
-      this.activeIndex = id
       this.loadTable(id)
     },
     load() {
@@ -297,7 +300,6 @@ export default {
       API.get("/api/category").then(res => {
         this.categories = res.data
         if (this.categories && this.categories.length > 0) {
-          this.activeIndex = this.categories[0].id
           this.loadTable(this.categories[0].id)
         }
       })

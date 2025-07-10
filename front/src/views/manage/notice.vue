@@ -1,14 +1,18 @@
 <template>
   <div>
+    <!-- 操作区域 -->
     <div style="padding: 5px 0">
       <el-button @click="add" type="primary" size="mini" style="margin: 10px 0">新增</el-button>
     </div>
+
+    <!-- 公告数据表格 -->
     <el-table :data="tableData" border stripe style="width: 100%">
       <el-table-column prop="id" label="ID" width="100"> </el-table-column>
       <el-table-column prop="title" label="标题"> </el-table-column>
       <el-table-column prop="content" label="内容"> </el-table-column>
       <el-table-column prop="time" label="发布时间"> </el-table-column>
 
+      <!-- 操作列 -->
       <el-table-column
           fixed="right"
           label="操作"
@@ -24,6 +28,8 @@
         </template>
       </el-table-column>
     </el-table>
+
+    <!-- 分页 -->
     <div style="margin-top: 10px">
       <el-pagination
         @size-change="handleSizeChange"
@@ -37,17 +43,16 @@
       </el-pagination>
     </div>
 
-    <!-- 弹窗   -->
-    <el-dialog title="用户信息" :visible.sync="dialogFormVisible" width="30%"
-               :close-on-click-modal="false" :close-on-press-escape="false" :show-close="false">
-      <el-form :model="entity">
-        <el-form-item label="标题" label-width="100px">
+    <!-- 新增/编辑弹窗 -->
+    <el-dialog title="公告信息" :visible.sync="dialogFormVisible" width="40%"
+               :close-on-click-modal="false">
+      <el-form :model="entity" label-width="100px">
+        <el-form-item label="标题">
           <el-input v-model="entity.title" autocomplete="off" style="width: 80%"></el-input>
         </el-form-item>
-        <el-form-item label="内容" label-width="100px">
+        <el-form-item label="内容">
           <el-input type="textarea" :rows="5" v-model="entity.content" autocomplete="off" style="width: 80%"></el-input>
         </el-form-item>
-
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取 消</el-button>
@@ -79,56 +84,53 @@ export default {
     this.load()
   },
   methods: {
+    // 处理每页显示条数变化
     handleSizeChange(pageSize) {
       this.pageSize = pageSize
       this.load()
     },
+    // 处理页码变化
     handleCurrentChange(pageNum) {
       this.pageNum = pageNum
       this.load()
     },
+    // 加载公告列表
     load() {
        API.get(url + "/page", {
           params: {
             pageNum: this.pageNum,
             pageSize: this.pageSize,
-            name: ''
+            name: '' // 该参数在后端未使用，但保留以保持接口一致性
           }
        }).then(res => {
-          this.tableData = res.data.records || []
-          this.total = res.data.total
-       })
+          this.tableData = res.data.records || [];
+          this.total = res.data.total;
+       });
     },
+    // 打开新增弹窗
     add() {
-      this.entity = {}
-      this.dialogFormVisible = true
+      this.entity = {};
+      this.dialogFormVisible = true;
     },
+    // 打开编辑弹窗
     edit(obj) {
-      this.entity = JSON.parse(JSON.stringify(obj))
-      this.dialogFormVisible = true
+      this.entity = JSON.parse(JSON.stringify(obj));
+      this.dialogFormVisible = true;
     },
+    // 保存（新增或修改）
     save() {
-      if (!this.entity.id) {
-        API.post(url, this.entity).then(res => {
-          this.$message({
-            type: "success",
-            message: "操作成功"
-          })
-          this.load()
-          this.dialogFormVisible = false
-        })
-      } else {
-        API.put(url, this.entity).then(res => {
-          this.$message({
-            type: "success",
-            message: "操作成功"
-          })
-          this.load()
-          this.dialogFormVisible = false
-        })
-      }
-
+      const apiCall = this.entity.id ? API.put(url, this.entity) : API.post(url, this.entity);
+      apiCall.then(res => {
+        if (res.code === '0') {
+          this.$message.success("操作成功");
+          this.dialogFormVisible = false;
+          this.load();
+        } else {
+          this.$message.error(res.msg);
+        }
+      });
     },
+    // 删除公告
     del(id) {
       API.delete(url + id).then(res => {
         this.$message({

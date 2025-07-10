@@ -1,25 +1,28 @@
 <template>
   <div class="bakery-product-detail">
     <div style="margin-top: 20px">
-      <!--      商品-->
+      <!-- 商品主要信息区域 -->
       <el-row :gutter="30">
-        <!--    图片-->
+        <!-- 左侧：商品图片展示 -->
         <el-col :span="8">
           <div class="product-gallery">
+            <!-- 主图 -->
             <div class="main-image">
               <el-image :src="mainImg"></el-image>
             </div>
+            <!-- 缩略图列表 -->
             <div class="thumbnail-container">
-              <div class="thumbnail-item" v-for="(item, index) in goods.imgs" :key="item" @mouseover="show(item)">
+              <div class="thumbnail-item" v-for="item in goods.imgs" :key="item" @mouseover="show(item)">
                 <el-image style="width: 60px; height: 60px;" fit="contain" :src="item"></el-image>
               </div>
             </div>
           </div>
         </el-col>
 
-        <!--    商品细节-->
+        <!-- 右侧：商品详细信息和操作 -->
         <el-col :span="16">
           <div class="product-info">
+            <!-- 收藏和点赞按钮 -->
             <div class="product-actions">
               <div class="action-button" @click="collect">
                 <img :src="collectActiveIcon" alt="收藏" class="action-icon">
@@ -30,6 +33,7 @@
                 <span class="action-text">{{ goods.praise }}</span>
               </div>
             </div>
+            <!-- 商品标题和描述 -->
             <h1 class="product-title">{{ goods.name }}</h1>
             <div class="product-description">{{ goods.description }}</div>
             <div class="product-meta">
@@ -37,19 +41,20 @@
               <span class="meta-value">{{ goods.createTime }}</span>
             </div>
 
+            <!-- 价格和折扣信息 -->
             <div class="product-price">
               <span class="price-label">抢购价</span>
               <span class="current-price">￥{{ goods.realPrice }}</span>
               <span class="discount-tag" v-if="goods.discount < 1">({{ (goods.discount * 10).toFixed(1) }}折)</span>
             </div>
-
             <div class="original-price" v-if="goods.discount < 1">
               原价：￥{{ goods.price }}
             </div>
+            <!-- 库存 -->
             <div class="product-stock">
               库存：{{ goods.store }}
             </div>
-
+            <!-- 服务承诺 -->
             <div class="product-service">
               <span class="service-label">服务</span>
               <span class="service-value">
@@ -57,6 +62,7 @@
               </span>
             </div>
 
+            <!-- 购买操作：数量选择、加入购物车、立即购买 -->
             <div class="product-actions-buy">
               <el-input-number v-model="num" :min="1" :max="10" label="购买数量" class="quantity-input"></el-input-number>
               <el-button class="add-to-cart-btn" @click="addCart">
@@ -69,10 +75,11 @@
         </el-col>
       </el-row>
 
-      <!--      评论-->
+      <!-- 商品评论区 -->
       <div class="product-comments">
         <h2 class="bakery-section-title">商品评论</h2>
         
+        <!-- 遍历显示评论列表 -->
         <div class="comment-item" v-for="item in messages">
           <div class="comment-avatar">
             <el-image :src="item.avatar" class="avatar-img"></el-image>
@@ -81,8 +88,10 @@
             <div class="comment-username">{{ item.username }}</div>
             <div class="comment-text">
               {{ item.content }}
+              <!-- 如果评论是当前用户发表的，显示删除按钮 -->
               <el-button type="text" size="mini" class="delete-btn" @click="del(item.id)" v-if="item.username === user.username">删除</el-button>
             </div>
+            <!-- 显示父级评论（回复） -->
             <div class="comment-reply" v-if="item.parentMessage">{{ item.username }}：{{ item.parentMessage.content }}</div>
             <div class="comment-meta">
               <span>{{ item.time }}</span>
@@ -90,6 +99,7 @@
           </div>
         </div>
 
+        <!-- 回复弹窗 (功能未完全展示) -->
         <el-dialog title="回复信息" :visible.sync="dialogFormVisible" width="30%" :close-on-click-modal="false">
           <el-form :model="entity">
             <el-form-item label="内容" label-width="100px">
@@ -103,7 +113,7 @@
         </el-dialog>
       </div>
 
-      <!-- Related Products -->
+      <!-- 相关商品推荐区域 (静态展示) -->
       <div class="related-products">
         <h2 class="bakery-section-title">相关商品</h2>
         <el-row :gutter="20">
@@ -128,33 +138,34 @@
 <script>
 import API from "@/utils/request";
 
-const url = "/api/video/"
-
 export default {
   name: "Goods",
   data() {
     return {
-      messages: [],
-      dialogFormVisible: false,
-      entity: {},
-      address: '',
-      mainImg: '',
-      cartIcon: require('../../assets/购物车-23.png'),
-      praiseActiveIcon: require("../../assets/点赞-激活.png"),
-      collectActiveIcon: require("../../assets/收藏-激活.png"),
-      num: 1,
-      id: 1,
-      user: {},
-      goods: {imgs: []},
-      praiseFlag: false
+      messages: [],                      // 商品评论列表
+      dialogFormVisible: false,          // 控制回复弹窗的显示
+      entity: {},                        // 存储当前操作的实体（如回复）
+      mainImg: '',                       // 当前显示的主图 URL
+      cartIcon: require('../../assets/购物车-23.png'), // 购物车图标
+      praiseActiveIcon: require("../../assets/点赞-激活.png"), // 点赞激活状态图标
+      collectActiveIcon: require("../../assets/收藏-激活.png"), // 收藏激活状态图标
+      num: 1,                            // 购买数量
+      id: 1,                             // 当前商品 ID
+      user: {},                          // 当前登录的用户信息
+      goods: {imgs: []},                 // 商品详情数据
+      praiseFlag: false                  // 防止重复点赞的标志
     };
   },
   created() {
+    // 从 sessionStorage 获取用户信息
     this.user = sessionStorage.getItem("user") ? JSON.parse(sessionStorage.getItem("user")) : {}
+    // 从路由查询参数中获取商品 ID
     this.id = this.$route.query.id
+    // 加载商品数据
     this.load()
   },
   methods: {
+    // 收藏商品
     collect() {
       API.post("/api/collect", {
         goodsName: this.goods.name,
@@ -163,81 +174,66 @@ export default {
         userId: this.user.id
       }).then(res => {
         if (res.code === '0') {
-          this.$message({
-            message: "收藏成功",
-            type: "success"
-          });
+          this.$message.success("收藏成功");
         } else {
-          this.$message({
-            message: res.msg,
-            type: "error"
-          });
+          this.$message.error(res.msg);
         }
-        this.load();
+        this.load(); // 重新加载数据以更新状态
       })
     },
+    // 点赞商品
     praise() {
+      // 如果已经点过赞，则提示并返回
       if (this.praiseFlag) {
-        this.$message({
-          message: "您已点过赞",
-          type: "warning"
-        });
+        this.$message.warning("您已点过赞");
         return
       }
-      this.praiseFlag = true
+      this.praiseFlag = true; // 设置点赞标志，防止重复点击
       this.entity = JSON.parse(JSON.stringify(this.goods))
-      this.entity.praise += 1
-      this.entity.imgs = null
+      this.entity.praise += 1;
+      this.entity.imgs = null; // 更新时不需要传递图片信息
       API.put("/api/goods", this.entity).then(res => {
         if (res.code === '0') {
-          this.$message({
-            message: "点赞成功",
-            type: "success"
-          });
+          this.$message.success("点赞成功");
         } else {
-          this.$message({
-            message: res.msg,
-            type: "error"
-          });
+          this.$message.error(res.msg);
         }
-        this.load();
+        this.load(); // 重新加载数据以更新点赞数
       })
     },
+    // 加载商品评论
     loadMessage() {
       API.get("/api/message/foreign/" + this.goods.id).then(res => {
         this.messages = res.data;
       })
     },
+    // 立即购买
     buyNow() {
+      // 检查库存
       if ((this.goods.store - this.num) < 0) {
-        this.$message({
-          type: 'warning',
-          message: '商品库存不足！'
-        })
+        this.$message.warning('商品库存不足！');
         return
       }
       let cart = []
       cart.push({count: this.num, goods: this.goods, goodsId: this.goods.id})
+      // 将要购买的商品存入 Vuex store，然后跳转到预订单页面
       this.$store.commit("setCarts", cart)
       this.$router.replace("/front/preOrder")
     },
-    // ... existing methods
+    // 鼠标悬停时切换主图
     show(item) {
       this.mainImg = item
     },
+    // 加入购物车
     addCart() {
+      // 检查是否登录
       if (!this.user.id) {
-        this.$message({
-          type: 'warning',
-          message: '请先登录！'
-        })
+        this.$message.warning('请先登录！');
         return
       }
+      // 检查库存
       if ((this.goods.store - this.num) < 0) {
-        this.$message({
-          type: 'warning',
-          message: '商品库存不足！'
-        })
+        this.$message.warning('商品库存不足！');
         return
       }
 
@@ -247,18 +243,13 @@ export default {
         count: this.num
       }).then(res => {
         if (res.code === '0') {
-          this.$message({
-            message: "添加成功",
-            type: "success"
-          });
+          this.$message.success("加入购物车成功");
         } else {
-          this.$message({
-            message: res.msg,
-            type: "error"
-          });
+          this.$message.error(res.msg);
         }
       })
     },
+    // 加载商品详情
     load() {
       API.get("/api/goods/" + this.id).then(res => {
         this.goods = res.data
@@ -269,49 +260,36 @@ export default {
         this.loadMessage()
       })
     },
+    // 删除评论
     del(id) {
       API.delete("/api/message/" + id).then(res => {
         if (res.code === '0') {
-          this.$message({
-            message: "删除成功",
-            type: "success"
-          });
+          this.$message.success("删除成功");
         } else {
-          this.$message({
-            message: res.msg,
-            type: "error"
-          });
+          this.$message.error(res.msg);
         }
         this.loadMessage()
       })
     },
+    // 回复评论
     reReply(id) {
       this.dialogFormVisible = true
       this.entity = {parentId: id, foreignId: this.goods.id, username: this.user.username, avatar: this.user.avatar}
     },
     reply() {
       if (!this.entity.reply) {
-        this.$message({
-          message: "请填写内容",
-          type: "warning"
-        });
+        this.$message.warning("请填写内容");
         return;
       }
       this.entity.content = this.entity.reply
       API.post("/api/message", this.entity).then(res => {
         if (res.code === '0') {
-          this.$message({
-            message: "回复成功",
-            type: "success"
-          });
+          this.$message.success("回复成功");
           this.dialogFormVisible = false
           this.entity = {}
           this.loadMessage()
         } else {
-          this.$message({
-            message: res.msg,
-            type: "error"
-          });
+          this.$message.error(res.msg);
         }
       })
     },

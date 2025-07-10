@@ -1,11 +1,13 @@
 <template>
   <div>
+    <!-- 搜索和重置区域 -->
     <div style="margin: 10px 0">
       <el-input style="width: 200px" placeholder="请输入名称" suffix-icon="el-icon-search" v-model="name"></el-input>
       <el-button class="ml-5" type="primary" @click="load">搜索</el-button>
       <el-button type="warning" @click="reset">重置</el-button>
     </div>
 
+    <!-- 新增和批量删除区域 -->
     <div style="margin: 10px 0">
       <el-button type="primary" @click="handleAdd">新增 <i class="el-icon-circle-plus-outline"></i></el-button>
       <el-popconfirm
@@ -21,6 +23,7 @@
       </el-popconfirm>
     </div>
 
+    <!-- 商品数据表格 -->
     <el-table :data="tableData" border stripe :header-cell-class-name="'headerBg'"  @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55"></el-table-column>
       <el-table-column prop="id" label="ID" width="80"></el-table-column>
@@ -31,6 +34,7 @@
       <el-table-column prop="sales" label="销量"></el-table-column>
       <el-table-column prop="createTime" label="上架时间"></el-table-column>
       <el-table-column prop="categoryName" label="分类"></el-table-column>
+      <!-- 操作列 -->
       <el-table-column label="操作"  width="200" align="center">
         <template slot-scope="scope">
           <el-button type="success" @click="handleEdit(scope.row)">编辑 <i class="el-icon-edit"></i></el-button>
@@ -48,6 +52,8 @@
         </template>
       </el-table-column>
     </el-table>
+
+    <!-- 分页 -->
     <div style="padding: 10px 0">
       <el-pagination
           @size-change="handleSizeChange"
@@ -60,12 +66,14 @@
       </el-pagination>
     </div>
 
+    <!-- 新增/编辑弹窗 -->
     <el-dialog title="商品信息" :visible.sync="dialogFormVisible" width="30%" >
       <el-form label-width="80px" size="small">
         <el-form-item label="名称">
           <el-input v-model="form.name" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="图片">
+          <!-- 自定义样式的图片上传 -->
           <el-upload
               class="avatar-uploader"
               action="http://localhost:9999/files/upload"
@@ -120,11 +128,13 @@ export default {
   created() {
     this.load()
 
+    // 加载分类信息，用于弹窗中的下拉选择
     request.get("/api/category").then(res => {
       this.categories = res.data
     })
   },
   methods: {
+    // 加载商品列表
     load() {
       request.get("/api/merchant/goods/page", {
         params: {
@@ -137,7 +147,9 @@ export default {
         this.total = res.data.total
       })
     },
+    // 保存商品（新增或修改）
     save() {
+      // 使用商家专用的接口
       request.post("/api/merchant/goods", this.form).then(res => {
         if (res.code === '0') {
           this.$message.success("保存成功")
@@ -148,14 +160,17 @@ export default {
         }
       })
     },
+    // 打开新增弹窗
     handleAdd() {
       this.dialogFormVisible = true
       this.form = {}
     },
+    // 打开编辑弹窗
     handleEdit(row) {
       this.form = JSON.parse(JSON.stringify(row))
       this.dialogFormVisible = true
     },
+    // 删除商品
     del(id) {
       request.delete("/api/merchant/goods/" + id).then(res => {
         if (res.code === '0') {
@@ -166,9 +181,11 @@ export default {
         }
       })
     },
+    // 处理表格多选变化
     handleSelectionChange(val) {
       this.multipleSelection = val
     },
+    // 批量删除
     delBatch() {
       let ids = this.multipleSelection.map(v => v.id)
       // 注意！批量删除也需要调用商家接口，但我们后端没做，这里暂时注释掉
@@ -183,18 +200,22 @@ export default {
       //   }
       // })
     },
+    // 重置搜索条件
     reset() {
       this.name = ""
       this.load()
     },
+    // 处理每页显示条数变化
     handleSizeChange(pageSize) {
       this.pageSize = pageSize
       this.load()
     },
+    // 处理页码变化
     handleCurrentChange(pageNum) {
       this.pageNum = pageNum
       this.load()
     },
+    // 图片上传成功回调
     handleAvatarSuccess(res) {
       this.form.img = "http://localhost:9999/files/" + res.data
     }
@@ -203,9 +224,11 @@ export default {
 </script>
 
 <style>
+/* 自定义表格头部背景色 */
 .headerBg {
   background: #eee!important;
 }
+/* 自定义图片上传组件样式 */
 .avatar-uploader .el-upload {
   border: 1px dashed #d9d9d9;
   border-radius: 6px;
