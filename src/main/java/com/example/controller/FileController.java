@@ -1,114 +1,98 @@
 package com.example.controller;
 
+
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.IdUtil; // 建议使用更可靠的唯一ID生成方式
 import cn.hutool.core.util.StrUtil;
 import com.example.common.Result;
-import com.example.dto.FileVO;
-import org.apache.commons.compress.utils.Lists;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
-
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.util.List;
 
-/**
- * 文件上传和下载相关接口
- */
+
 @RestController
-@RequestMapping("/files")
 public class FileController {
 
-    // 文件存储路径
-    private static final String FILE_PATH = System.getProperty("user.dir") + "/src/main/resources/static/file/";
+    @Value("${server.port:9999}")
+    private String port;
+
+    @Value("${file.ip:localhost}")
+    private String ip;
+
+    // 【修改点】: 明确定义两个不同的路径
+    private static final String NEW_FILE_PATH = System.getProperty("user.dir") + "/files/";
+    private static final String OLD_FILE_PATH = System.getProperty("user.dir") + "/src/main/resources/static/file/";
 
     /**
-     * 单文件上传
-     *
-     * @param file 上传的文件
-     * @return Result<String> 返回一个唯一标识，用于后续文件访问
+     * 新的上传接口
      */
-    @PostMapping("/upload")
+    @PostMapping("/api/files/upload")
     public Result<String> upload(MultipartFile file) {
-        // 生成唯一标识
-        String flag = System.currentTimeMillis() + "";
-        String fileName = file.getOriginalFilename();
+        String originalFilename = file.getOriginalFilename();
+        String flag = IdUtil.fastSimpleUUID();
+        String newFileName = flag + "_" + originalFilename;
+
+        // 【修改点】: 确保文件被存放在新的路径下
+        File uploadFile = new File(NEW_FILE_PATH + newFileName);
+
         try {
-            // 将文件写入指定路径
-            FileUtil.writeBytes(file.getBytes(), FILE_PATH + flag + "-" + fileName);
-            System.out.println(fileName + "--上传成功");
-            Thread.sleep(1L); // 防止flag重复
+            if (!uploadFile.getParentFile().exists()) {
+                uploadFile.getParentFile().mkdirs();
+            }
+            file.transferTo(uploadFile);
         } catch (Exception e) {
-            System.err.println(fileName + "--文件上传失败");
+            return Result.error("-1", "文件上传失败: " + e.getMessage());
         }
-        return Result.success(flag);
+
+        // 返回新格式的 URL
+        String url = "http://" + ip + ":" + port + "/api/files/download/" + newFileName;
+        return Result.success(url);
     }
 
     /**
-     * 多文件上传
-     *
-     * @param files 上传的文件数组
-     * @return Result<List<FileVO>> 返回包含每个文件URL和名称的对象列表
+     * 新的下载/预览接口 (这个接口现在其实可以被 WebConfig 的静态映射替代，但保留也无妨)
      */
-    @PostMapping("/upload/multiple")
-    public Result<List<FileVO>> multipleUpload(MultipartFile[] files) {
-        String filePath = System.getProperty("user.dir") + "/src/main/resources/static/file/";
-        List<FileVO> fileVOS = Lists.newArrayList();
-        for (MultipartFile file : files) {
-            if (file.isEmpty()) {
-                continue;
-            }
-            // 生成唯一标识
-            String flag = System.currentTimeMillis() + "";
-            String fileName = file.getOriginalFilename();
-            FileVO fileVO = new FileVO();
-            // 构造文件的访问URL
-            fileVO.setUrl("http://localhost:9999/files/" + flag);
-            fileVO.setName(file.getOriginalFilename());
-            fileVOS.add(fileVO);
-            try {
-                FileUtil.writeBytes(file.getBytes(), filePath + flag + "-" + fileName);
-                System.out.println(fileName + "--上传成功");
-                Thread.sleep(1L);
-            } catch (Exception e) {
-                System.err.println(fileName + "--文件上传失败");
-            }
-
+    @GetMapping("/api/files/download/{fileName}")
+    public void download(@PathVariable String fileName, HttpServletResponse response) {
+        try {
+            // 【修改点】: 从新的路径读取文件
+            byte[] bytes = FileUtil.readBytes(NEW_FILE_PATH + fileName);
+            response.setContentType("image/jpeg");
+            OutputStream os = response.getOutputStream();
+            os.write(bytes);
+            os.flush();
+            os.close();
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         }
-        return Result.success(fileVOS);
     }
 
     /**
-     * 获取文件（下载）
-     *
-     * @param flag      文件上传时返回的唯一标识
-     * @param response  HttpServletResponse对象，用于写回文件流
+     * 【兼容旧URL的接口】
      */
-    @GetMapping("/{flag}")
+    @GetMapping("/files/{flag}")
     public void avatarPath(@PathVariable String flag, HttpServletResponse response) {
-        OutputStream os;
-        String basePath = System.getProperty("user.dir") + "/src/main/resources/static/file/";
-        List<String> fileNames = FileUtil.listFileNames(basePath);
+        // 【修改点】: 从旧的路径查找文件
+        List<String> fileNames = FileUtil.listFileNames(OLD_FILE_PATH);
         String avatar = fileNames.stream().filter(name -> name.contains(flag)).findAny().orElse("");
         try {
             if (StrUtil.isNotEmpty(avatar)) {
-                // 设置响应头，提示浏览器下载文件
-                response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(avatar, "UTF-8"));
-                response.setContentType("application/octet-stream");
-                // 读取文件字节流并写回response
-                byte[] bytes = FileUtil.readBytes(FILE_PATH + avatar);
-                os = response.getOutputStream();
+                response.setContentType("image/jpeg");
+                byte[] bytes = FileUtil.readBytes(OLD_FILE_PATH + avatar);
+                OutputStream os = response.getOutputStream();
                 os.write(bytes);
                 os.flush();
                 os.close();
+            } else {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             }
         } catch (Exception e) {
-            System.out.println("文件下载失败");
+            System.out.println("旧文件下载失败");
         }
     }
-
 }

@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.common.Result;
+import com.example.dto.GoodsVO;
 import com.example.entity.Goods;
 import com.example.entity.User;
 import com.example.service.GoodsService;
@@ -131,7 +132,11 @@ public class MerchantController {
         if (currentUser == null) {
             return Result.error("-1", "请先登录");
         }
-        IPage<Goods> page = goodsService.findPage(new Page<>(pageNum, pageSize), name, currentUser.getId());
+        // 【修改点】: 调用新的 Service 方法 findPageForVO
+        // 返回的类型自动变成了 IPage<GoodsVO>
+        IPage<GoodsVO> page = goodsService.findPageForVO(new Page<>(pageNum, pageSize), name, currentUser.getId());
+
+        // 无需其他修改，直接返回。Spring Boot 会将 IPage<GoodsVO> 正确序列化
         return Result.success(page);
     }
 } 

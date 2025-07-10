@@ -47,18 +47,20 @@
             <span>分类商品销量统计</span>
           </div>
           <!-- ECharts 饼图容器 -->
-          <div v-if="chartData.length" id="category-pie" :style="{ width: '100%', height: '400px' }"></div>
+          <!-- 【修改 1】: 使用 ref 替代 id -->
+          <div v-if="chartData.length" ref="pieChart" :style="{ width: '100%', height: '400px' }"></div>
           <!-- 无数据时显示 -->
           <div v-else class="empty-chart">暂无数据</div>
         </el-card>
       </el-col>
     </el-row>
-
   </div>
 </template>
 
 <script>
 import API from '../../utils/request'
+// 引入 ECharts
+import * as echarts from 'echarts';
 
 export default {
   name: "MerchantHome",
@@ -69,77 +71,97 @@ export default {
         totalSales: 0,
         totalRevenue: 0
       },
-      chartData: []
+      chartData: [],
+      pieChart: null, // 【修改 2】: 用于存储 ECharts 实例
     };
   },
   mounted() {
     this.user = sessionStorage.getItem("user")
-      ? JSON.parse(sessionStorage.getItem("user"))
-      : {};
+        ? JSON.parse(sessionStorage.getItem("user"))
+        : {};
     this.loadStats();
-    this.drawPieChart();
+    this.loadAndDrawPieChart(); // 修改了方法名以更清晰地反映其作用
+  },
+  // 【修改 5】: 在组件销毁前，清理图表和事件监听，防止内存泄漏
+  beforeDestroy() {
+    if (this.pieChart) {
+      this.pieChart.dispose(); // 销毁实例
+      this.pieChart = null;
+    }
+    window.removeEventListener("resize", this.handleChartResize);
   },
   methods: {
-    // 绘制分类销量饼图
-    drawPieChart() {
-      // 商家专用接口
+    // 【修改 3】: 将加载数据和绘制图表合并到一个方法中
+    loadAndDrawPieChart() {
       API.get('/api/merchant/stats/category').then(res => {
-        if (res.code === '0' && res.data.length) {
+        if (res.code === '0' && res.data && res.data.length) {
           this.chartData = res.data;
-          const option = {
-            tooltip: { trigger: 'item', formatter: '{b}<br/>销量: {c} ({d}%)' },
-            legend: { top: '5%', left: 'center' },
-            color: ['#ff6f00', '#ff8f00', '#ffb300', '#ffd54f', '#fff59d'],
-            series: [{
-              name: '分类销量',
-              type: 'pie',
-              radius: ['40%', '70%'],
-              avoidLabelOverlap: false,
-              itemStyle: {
-                borderRadius: 10,
-                borderColor: '#fff',
-                borderWidth: 2
-              },
-              label: {
-                show: false,
-                position: 'center'
-              },
-              emphasis: {
-                label: {
-                  show: true,
-                  fontSize: '20',
-                  fontWeight: 'bold'
-                }
-              },
-              labelLine: {
-                show: false
-              },
-              data: this.chartData
-            }]
-          };
-          const chart = this.$echarts.init(document.getElementById('category-pie'));
-          chart.setOption(option);
-          window.addEventListener("resize", () => {
-            chart.resize();
+
+          // 【修改 4】: 使用 this.$nextTick 确保 DOM 更新后再初始化 ECharts
+          this.$nextTick(() => {
+            const option = {
+              tooltip: { trigger: 'item', formatter: '{b}<br/>销量: {c} ({d}%)' },
+              legend: { top: '5%', left: 'center' },
+              color: ['#ff6f00', '#ff8f00', '#ffb300', '#ffd54f', '#fff59d'],
+              series: [{
+                name: '分类销量',
+                type: 'pie',
+                radius: ['40%', '70%'],
+                avoidLabelOverlap: false,
+                itemStyle: {
+                  borderRadius: 10,
+                  borderColor: '#fff',
+                  borderWidth: 2
+                },
+                label: { show: false, position: 'center' },
+                emphasis: { label: { show: true, fontSize: '20', fontWeight: 'bold' } },
+                labelLine: { show: false },
+                data: this.chartData
+              }]
+            };
+
+            // 如果已有实例，先销毁，防止重复渲染
+            if (this.pieChart) {
+              this.pieChart.dispose();
+            }
+
+            // 使用 ref 获取 DOM 元素并初始化 ECharts
+            this.pieChart = echarts.init(this.$refs.pieChart);
+            this.pieChart.setOption(option);
+
+            // 添加窗口大小变化的监听
+            window.addEventListener("resize", this.handleChartResize);
           });
+        } else {
+          // 如果没有数据，确保清空图表和数据
+          this.chartData = [];
+          if (this.pieChart) {
+            this.pieChart.dispose();
+            this.pieChart = null;
+          }
         }
       });
     },
     // 加载商家的统计数据（总销量、总销售额）
     loadStats() {
-      // 从商家专用接口获取统计数据
       API.get('/api/merchant/stats').then(res => {
         if (res.code === '0') {
           this.stats = res.data;
         }
       })
     },
+    // 将 resize 回调独立成一个方法，方便添加和移除
+    handleChartResize() {
+      if (this.pieChart) {
+        this.pieChart.resize();
+      }
+    }
   },
 };
 </script>
 
 <style scoped>
-/* 定义 CSS 变量以方便主题管理 */
+/* 样式部分无需修改，保持原样 */
 :root {
   --primary-bg: #fff8ec; /* 主背景色 */
   --card-bg: #fffdf9;    /* 卡片背景色 */
@@ -223,4 +245,4 @@ export default {
   color: var(--text-secondary);
   font-size: 16px;
 }
-</style> 
+</style>

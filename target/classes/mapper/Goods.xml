@@ -2,9 +2,28 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.example.mapper.GoodsMapper">
 
+    <!-- 修改后的 findPage -->
     <select id="findPage" resultType="com.example.entity.Goods">
-        select g.*,c.name as categoryName from goods g left join category c
-        on g.category_id = c.id
+        SELECT
+        g.id,
+        g.name,
+        g.description,
+        g.no,
+        g.price,
+        g.discount,
+        g.store,
+        g.praise,
+        g.sales,
+        g.category_id,
+        g.imgs,
+        g.create_time,
+        g.recommend,
+        g.merchant_id,
+        c.name AS categoryName
+        FROM
+        goods g
+        LEFT JOIN
+        category c ON g.category_id = c.id
         <where>
             <if test="name != null and name != ''">
                 and g.name like concat('%', #{name}, '%')
@@ -20,7 +39,26 @@
     </select>
 
     <select id="findAll" resultType="com.example.entity.Goods">
-        select goods.*,category.name as categoryName  from goods left join category on goods.category_id = category.id
+        SELECT
+            g.id,
+            g.name,
+            g.description,
+            g.no,
+            g.price,
+            g.discount,
+            g.store,
+            g.praise,
+            g.sales,
+            g.category_id,
+            g.imgs,
+            g.create_time,
+            g.recommend,
+            g.merchant_id,
+            c.name AS categoryName
+        FROM
+            goods g
+                LEFT JOIN
+            category c ON g.category_id = c.id
     </select>
 
 </mapper>

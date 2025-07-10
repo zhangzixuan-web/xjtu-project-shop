@@ -9,16 +9,21 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.entity.User;
 import com.example.exception.CustomException;
 import com.example.mapper.GoodsMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-
+import com.example.dto.GoodsVO;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 商品服务类
@@ -28,7 +33,8 @@ public class GoodsService extends ServiceImpl<GoodsMapper, Goods> {
 
     @Resource
     private GoodsMapper goodsMapper;
-
+    @Resource
+    private ObjectMapper objectMapper;
     /**
      * 分页查询商品（管理员和商家公用）
      * @param page 分页对象
@@ -172,5 +178,76 @@ public class GoodsService extends ServiceImpl<GoodsMapper, Goods> {
      */
     public List<Goods> findAll() {
         return goodsMapper.findAll();
+    }
+
+    /**
+     * 【新增方法】：查询分页数据并转换为 VO
+     * 这个方法将是 Controller 的新调用目标
+     */
+    public IPage<GoodsVO> findPageForVO(Page<Goods> pageRequest, String name, Long merchantId) {
+        // 1. 调用原有的方法，从数据库获取原始数据
+        // 现在 pageRequest 的类型是 Page<Goods>，与 findPage 方法的参数类型完全匹配
+        IPage<Goods> goodsPage = this.findPage(pageRequest, name, merchantId);
+
+        // 2. 将 List<Goods> 转换为 List<GoodsVO>
+        List<GoodsVO> voList = goodsPage.getRecords().stream()
+                .map(this::convertToVO) // 对每个 Goods 对象调用转换方法
+                .collect(Collectors.toList());
+
+        // 3. 创建一个新的分页对象 (IPage<GoodsVO>) 用于返回
+        IPage<GoodsVO> resultPage = new Page<>(goodsPage.getCurrent(), goodsPage.getSize(), goodsPage.getTotal());
+        resultPage.setRecords(voList);
+
+        return resultPage;
+    }
+
+    /**
+     * 【新增的私有辅助方法】：将单个 Goods 实体转换为 GoodsVO
+     */
+    /**
+     * 【最终调试版本】：将单个 Goods 实体转换为 GoodsVO (手动赋值)
+     */
+    private GoodsVO convertToVO(Goods goods) {
+        GoodsVO vo = new GoodsVO();
+
+        // --- 核心修改：弃用 BeanUtils，改为手动赋值 ---
+        // 我们来明确地、一步步地把数据从 Goods 实体“搬”到 GoodsVO
+
+        vo.setId(goods.getId()); // 这是最关键的一步！
+        vo.setName(goods.getName());
+        vo.setDescription(goods.getDescription());
+        vo.setNo(goods.getNo());
+        vo.setPrice(goods.getPrice());
+        vo.setDiscount(goods.getDiscount());
+        vo.setStore(goods.getStore());
+        vo.setPraise(goods.getPraise());
+        vo.setSales(goods.getSales());
+        vo.setCategoryId(goods.getCategoryId());
+        // 注意：categoryName 是从 JOIN 查询来的，它在 Goods 实体里也应该有对应的字段和 get/set 方法
+        vo.setCategoryName(goods.getCategoryName());
+        vo.setCreateTime(goods.getCreateTime());
+        vo.setRecommend(goods.getRecommend());
+        vo.setMerchantId(goods.getMerchantId());
+
+        // 处理 imgs 字段的逻辑保持不变
+        String imgsJsonString = goods.getImgs();
+        if (imgsJsonString != null && !imgsJsonString.isEmpty() && imgsJsonString.startsWith("[")) {
+            try {
+                List<String> imgList = objectMapper.readValue(imgsJsonString, new TypeReference<List<String>>() {});
+                vo.setImgs(imgList);
+            } catch (Exception e) {
+                vo.setImgs(Collections.emptyList());
+            }
+        } else {
+            vo.setImgs(Collections.emptyList());
+        }
+
+        // 检查 realPrice，如果 GoodsVO 中有这个字段，我们给它一个默认值
+        // 假设 GoodsVO 中有 realPrice 字段
+        if (vo.getRealPrice() == null) {
+            vo.setRealPrice(null); // 或者 vo.setRealPrice(BigDecimal.ZERO);
+        }
+
+        return vo;
     }
 }

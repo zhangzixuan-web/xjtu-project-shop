@@ -105,5 +105,6 @@ public class Goods extends Model<Goods> {
 
 
     private Long merchantId;  // <<< 新增字段
+    // 在 Goods.java 中添加
 
 }
