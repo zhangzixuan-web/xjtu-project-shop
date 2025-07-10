@@ -1,3 +1,4 @@
+```markdown
 front/
 ├── public/
 │   └── (静态资源，如 index.html, favicon.ico)
@@ -46,3 +47,62 @@ front/
 ├── package.json
 ├── package-lock.json
 └── vue.config.js
+
+src
+└── main
+    ├── java
+    │   └── com
+    │       └── example
+    │           ├── common
+    │           │   ├── handler
+    │           │   │   └── ListHandler.java
+    │           │   ├── AuthInterceptor.java
+    │           │   ├── CorsConfig.java
+    │           │   ├── MybatisPlusConfig.java
+    │           │   ├── Result.java
+    │           │   └── WebMvcConfig.java
+    │           ├── controller
+    │           │   ├── UserController.java
+    │           │   ├── GoodsController.java
+    │           │   ├── OrderController.java
+    │           │   ├── RoleController.java
+    │           │   ├── MerchantController.java
+    │           │   └── ... (其他14个Controller)
+    │           ├── dto
+    │           │   ├── FileVO.java
+    │           │   └── PreOrderQo.java
+    │           ├── entity
+    │           │   ├── User.java
+    │           │   ├── Goods.java
+    │           │   ├── Order.java
+    │           │   ├── Role.java
+    │           │   └── ... (其他11个实体类)
+    │           ├── exception
+    │           │   ├── CustomException.java
+    │           │   └── GlobalExceptionHandler.java
+    │           ├── mapper
+    │           │   ├── UserMapper.java
+    │           │   ├── GoodsMapper.java
+    │           │   ├── OrderMapper.java
+    │           │   └── ... (其他12个Mapper接口)
+    │           ├── service
+    │           │   ├── UserService.java
+    │           │   ├── GoodsService.java
+    │           │   ├── OrderService.java
+    │           │   ├── LogisticsSimulatorService.java
+    │           │   └── ... (其他12个Service)
+    │           ├── utils
+    │           │   └── generator
+    │           │       └── (代码生成器相关)
+    │           └── Application.java
+    └── resources
+        ├── mapper
+        │   ├── User.xml
+        │   ├── Goods.xml
+        │   ├── Order.xml
+        │   └── ... (其他10个MyBatis XML文件)
+        ├── static
+        │   └── file
+        │       └── (用户上传的图片等文件)
+        └── application.yml
+```
