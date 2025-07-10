@@ -30,6 +30,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 用户相关接口
+ */
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
@@ -42,6 +45,10 @@ public class UserController {
     @Resource
     private HttpServletRequest request;
 
+    /**
+     * 从token中获取当前登录用户信息
+     * @return User
+     */
     public User getUser() {
         String token = request.getHeader("token");
         String username = JWT.decode(token).getAudience().get(0);
@@ -49,10 +56,9 @@ public class UserController {
     }
 
     /**
-     * 登录
-     *
-     * @param user
-     * @return
+     * 用户登录
+     * @param user 包含用户名和密码的用户对象
+     * @return Result<User> 包含token的用户信息
      */
     @PostMapping("/login")
     public Result<User> login(@RequestBody User user) {
@@ -66,11 +72,10 @@ public class UserController {
     }
 
     /**
-     * 注册
-     *
-     * @param user
-     * @param request
-     * @return
+     * 用户注册
+     * @param user 注册用户信息
+     * @param request HttpServletRequest
+     * @return Result<User>
      */
     @PostMapping("/register")
     public Result<User> register(@RequestBody User user, HttpServletRequest request) {
@@ -84,7 +89,11 @@ public class UserController {
         return Result.success(dbUser);
     }
 
-
+    /**
+     * 新增用户（管理员）
+     * @param user 用户信息
+     * @return Result
+     */
     @PostMapping
     public Result<?> save(@RequestBody User user) {
         if (user.getPassword() == null) {
@@ -94,6 +103,11 @@ public class UserController {
         return Result.success(userService.save(user));
     }
 
+    /**
+     * 重置密码
+     * @param user 包含用户名、手机号和新密码的用户对象
+     * @return Result
+     */
     @PutMapping("/reset")
     public Result<?> reset(@RequestBody User user) {
         if (StrUtil.isBlank(user.getUsername()) || StrUtil.isBlank(user.getPhone())
@@ -101,6 +115,7 @@ public class UserController {
             throw new CustomException("-1", "参数错误");
         }
         logService.log(user.getUsername(), StrUtil.format("{} 用户重置密码", user.getUsername()));
+        // 校验用户名和手机号
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("username", user.getUsername());
         queryWrapper.eq("phone", user.getPhone());
@@ -112,6 +127,11 @@ public class UserController {
         return Result.success(userService.updateById(one));
     }
 
+    /**
+     * 更新用户信息
+     * @param user 用户信息
+     * @return Result
+     */
     @PutMapping
     public Result<?> update(@RequestBody User user) {
         logService.log(StrUtil.format("更新用户：{} ", user.getUsername()));
@@ -119,9 +139,9 @@ public class UserController {
     }
 
     /**
-     * 更新账户余额
-     * @param money
-     * @return
+     * 用户充值
+     * @param money 充值金额
+     * @return Result
      */
     @PutMapping("/account/{money}")
     public Result<?> recharge(@PathVariable BigDecimal money) {
@@ -132,6 +152,11 @@ public class UserController {
         return Result.success();
     }
 
+    /**
+     * 删除用户（管理员）
+     * @param id 用户ID
+     * @return Result
+     */
     @DeleteMapping("/{id}")
     public Result<?> delete(@PathVariable Long id) {
         User user = userService.getById(id);
@@ -141,29 +166,51 @@ public class UserController {
         return Result.success();
     }
 
+    /**
+     * 根据ID查询用户
+     * @param id 用户ID
+     * @return Result<User>
+     */
     @GetMapping("/{id}")
     public Result<User> findById(@PathVariable Long id) {
         return Result.success(userService.findById(id));
     }
 
+    /**
+     * 查询所有用户
+     * @return Result<List<User>>
+     */
     @GetMapping
     public Result<List<User>> findAll() {
         return Result.success(userService.list());
     }
 
+    /**
+     * 分页查询用户
+     * @param name 用户名（用于搜索）
+     * @param pageNum 页码
+     * @param pageSize 每页数量
+     * @return Result<IPage<User>>
+     */
     @GetMapping("/page")
     public Result<IPage<User>> findPage(@RequestParam(required = false, defaultValue = "") String name,
                                         @RequestParam(required = false, defaultValue = "1") Integer pageNum,
                                         @RequestParam(required = false, defaultValue = "10") Integer pageSize) {
+        // 查询时排除admin用户
         LambdaQueryWrapper<User> wrapper = Wrappers.<User>lambdaQuery().ne(User::getUsername, "admin").like(User::getUsername, name).orderByDesc(User::getId);
         return Result.success(userService.page(new Page<>(pageNum, pageSize), wrapper));
     }
 
+    /**
+     * 导出用户信息为Excel文件
+     * @param response HttpServletResponse
+     * @throws IOException
+     */
     @GetMapping("/export")
     public void export(HttpServletResponse response) throws IOException {
-
         List<Map<String, Object>> list = CollUtil.newArrayList();
 
+        // 查询所有用户数据
         List<User> all = userService.list();
         for (User user : all) {
             Map<String, Object> row1 = new LinkedHashMap<>();
@@ -173,18 +220,20 @@ public class UserController {
             list.add(row1);
         }
 
-        // 2. 写excel
+        // 使用Hutool Excel工具类写入数据到Excel
         ExcelWriter writer = ExcelUtil.getWriter(true);
         writer.write(list, true);
 
+        // 设置response头，提示浏览器下载文件
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8");
         String fileName = URLEncoder.encode("用户信息", "UTF-8");
         response.setHeader("Content-Disposition", "attachment;filename=" + fileName + ".xlsx");
 
+        // 将Excel文件流写入response
         ServletOutputStream out = response.getOutputStream();
         writer.flush(out, true);
         writer.close();
-        IoUtil.close(System.out);
+        IoUtil.close(System.out); // Note: IoUtil.close(System.out) is unusual here and might be a mistake.
     }
 
 }

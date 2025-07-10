@@ -19,6 +19,9 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 购物车相关接口
+ */
 @RestController
 @RequestMapping("/api/cart")
 public class CartController {
@@ -29,44 +32,73 @@ public class CartController {
     @Resource
     private UserService userService;
 
+    /**
+     * 从token中获取当前登录用户信息
+     * @return User
+     */
     public User getUser() {
         String token = request.getHeader("token");
         String username = JWT.decode(token).getAudience().get(0);
         return userService.getOne(Wrappers.<User>lambdaQuery().eq(User::getUsername, username));
     }
 
+    /**
+     * 新增购物车商品
+     * @param cart 购物车信息
+     * @return Result
+     */
     @PostMapping
     public Result<?> save(@RequestBody Cart cart) {
         cart.setCreateTime(DateUtil.now());
-        // 加入购物车，相同的商品累加
+        // 加入购物车，如果商品已存在，则数量累加
         Cart userCart = cartService.getOne(Wrappers.<Cart>lambdaQuery().eq(Cart::getGoodsId, cart.getGoodsId()).eq(Cart::getUserId, cart.getUserId()));
         if (userCart != null) {
             userCart.setCount(cart.getCount() + userCart.getCount());
             cartService.updateById(userCart);
         } else {
-            // 不同商品添加新的购物车记录
+            // 如果是不同商品，则添加新的购物车记录
             cartService.save(cart);
         }
         return Result.success();
     }
 
+    /**
+     * 更新购物车商品
+     * @param cart 购物车信息
+     * @return Result
+     */
     @PutMapping
     public Result<?> update(@RequestBody Cart cart) {
         cartService.updateById(cart);
         return Result.success();
     }
 
+    /**
+     * 删除购物车商品
+     * @param id 购物车ID
+     * @return Result
+     */
     @DeleteMapping("/{id}")
     public Result<?> delete(@PathVariable Long id) {
         cartService.removeById(id);
         return Result.success();
     }
 
+    /**
+     * 根据ID查询购物车商品
+     * @param id 购物车ID
+     * @return Result
+     */
     @GetMapping("/{id}")
     public Result<?> findById(@PathVariable Long id) {
         return Result.success(cartService.getById(id));
     }
 
+    /**
+     * 查询当前用户的所有购物车商品
+     * @return Result
+     * @throws JSONException JSON异常
+     */
     @GetMapping
     public Result<?> findAll() throws JSONException {
         List<Cart> carts = new ArrayList<>();
@@ -77,6 +109,13 @@ public class CartController {
         return Result.success(cartService.findAll(carts));
     }
 
+    /**
+     * 分页查询购物车
+     * @param name (未使用)
+     * @param pageNum 页码
+     * @param pageSize 每页数量
+     * @return Result
+     */
     @GetMapping("/page")
     public Result<?> findPage(@RequestParam(required = false, defaultValue = "") String name,
                               @RequestParam(required = false, defaultValue = "1") Integer pageNum,

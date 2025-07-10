@@ -7,6 +7,12 @@ import com.baomidou.mybatisplus.extension.activerecord.Model;
 import lombok.Data;
 
 
+/**
+ * 日志实体类
+ * <p>
+ * 对应数据库中的 `t_log` 表。
+ * </p>
+ */
 @Data
 @TableName("t_log")
 public class Log extends Model<Log> {
@@ -27,10 +33,13 @@ public class Log extends Model<Log> {
     private String time;
 
     /**
-      * 操作人
+      * 操作人 (用户名)
       */
     private String user;
 
+    /**
+     * 操作人IP地址
+     */
     private String ip;
 
 }

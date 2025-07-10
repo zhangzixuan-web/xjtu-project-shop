@@ -7,6 +7,12 @@ import com.baomidou.mybatisplus.extension.activerecord.Model;
 import com.baomidou.mybatisplus.annotation.TableId;
 
 
+/**
+ * 商品分类实体类
+ * <p>
+ * 对应数据库中的 `category` 表。
+ * </p>
+ */
 @Data
 @TableName("category")
 public class Category extends Model<Category> {
@@ -17,12 +23,12 @@ public class Category extends Model<Category> {
     private Long id;
 
     /**
-      * 分类名称 
+      * 分类名称
       */
     private String name;
 
     /**
-      * 分类编号 
+      * 分类编号
       */
     private String no;
 

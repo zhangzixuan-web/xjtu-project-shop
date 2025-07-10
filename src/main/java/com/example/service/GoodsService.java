@@ -20,34 +20,58 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 商品服务类
+ */
 @Service
 public class GoodsService extends ServiceImpl<GoodsMapper, Goods> {
 
     @Resource
     private GoodsMapper goodsMapper;
 
-    // 管理员和商家公用的分页查询
+    /**
+     * 分页查询商品（管理员和商家公用）
+     * @param page 分页对象
+     * @param name 商品名称（用于搜索）
+     * @param merchantId 商家ID（如果为null，则查询所有商家的商品）
+     * @return IPage<Goods>
+     */
     public IPage<Goods> findPage(Page<Goods> page, String name, Long merchantId) {
         return goodsMapper.findPage(page, name, merchantId);
     }
 
-    // 重载一个给管理员用的方法，保持controller调用不变
+    /**
+     * 分页查询商品（管理员专用，重载方法）
+     * @param page 分页对象
+     * @param name 商品名称（用于搜索）
+     * @return IPage<Goods>
+     */
     public IPage<Goods> findPage(Page<Goods> page, String name) {
         return this.findPage(page, name, null);
     }
-    
-    // 修改 save 方法，直接接收 User 对象
+
+    /**
+     * 保存商品信息，区分商家和管理员
+     * @param entity 商品实体
+     * @param currentUser 当前登录用户
+     * @return boolean
+     */
     public boolean save(Goods entity, User currentUser) {
-        // 如果是商家在操作，则设置商家ID
+        // 如果当前用户是商家，则将商品与该商家关联
         if (isUserMerchant(currentUser)) {
             entity.setMerchantId(currentUser.getId());
         }
-        // 如果是管理员操作，则不设置，或者根据业务需求设置一个默认值，这里我们不设置
         return super.save(entity);
     }
 
-    // 修改 updateById 方法，直接接收 User 对象
+    /**
+     * 更新商品信息，包含商家权限校验
+     * @param entity 商品实体
+     * @param currentUser 当前登录用户
+     * @return boolean
+     */
     public boolean updateById(Goods entity, User currentUser) {
+        // 如果当前用户是商家，校验其是否有权限修改该商品
         if (isUserMerchant(currentUser)) {
             Goods dbGoods = getById(entity.getId());
             if (!dbGoods.getMerchantId().equals(currentUser.getId())) {
@@ -57,8 +81,14 @@ public class GoodsService extends ServiceImpl<GoodsMapper, Goods> {
         return super.updateById(entity);
     }
 
-    // 修改 removeById 方法，直接接收 User 对象
+    /**
+     * 删除商品信息，包含商家权限校验
+     * @param id 商品ID
+     * @param currentUser 当前登录用户
+     * @return boolean
+     */
     public boolean removeById(Serializable id, User currentUser) {
+        // 如果当前用户是商家，校验其是否有权限删除该商品
         if (isUserMerchant(currentUser)) {
             Goods dbGoods = getById(id);
             if (dbGoods != null && !dbGoods.getMerchantId().equals(currentUser.getId())) {
@@ -68,12 +98,17 @@ public class GoodsService extends ServiceImpl<GoodsMapper, Goods> {
         return super.removeById(id);
     }
 
-    // 新增一个私有辅助方法，用于安全地检查角色
+    /**
+     * 检查用户是否为商家
+     * @param user 用户对象
+     * @return boolean
+     */
     private boolean isUserMerchant(User user) {
         if (user == null || user.getRole() == null) {
             return false;
         }
-        // 使用传统的for循环和instanceof，避免泛型类型转换问题
+        // "商家"角色ID通常为3
+        // 注意：这里的角色判断逻辑依赖于前端传来的角色ID列表
         for (Object roleIdObj : user.getRole()) {
             if (roleIdObj instanceof Number && ((Number) roleIdObj).longValue() == 3L) {
                 return true;
@@ -82,10 +117,21 @@ public class GoodsService extends ServiceImpl<GoodsMapper, Goods> {
         return false;
     }
 
+    /**
+     * 根据分类ID分页查询商品
+     * @param page 分页对象
+     * @param id 分类ID
+     * @return IPage<Goods>
+     */
     public IPage<Goods> pageByCategory(Page<Goods> page, Long id) {
         return goodsMapper.pageByCategory(page, id);
     }
 
+    /**
+     * 获取商家的统计数据（总销量、总销售额）
+     * @param merchantId 商家ID
+     * @return Map<String, Object>
+     */
     public Map<String, Object> getMerchantStats(Long merchantId) {
         Integer totalSales = goodsMapper.countBySales(merchantId);
         Double totalRevenue = goodsMapper.countByPrice(merchantId);
@@ -95,18 +141,35 @@ public class GoodsService extends ServiceImpl<GoodsMapper, Goods> {
         return stats;
     }
 
+    /**
+     * 按分类获取商家的销售数据
+     * @param merchantId 商家ID
+     * @return List<Map<String, Object>>
+     */
     public List<Map<String, Object>> getSalesByCategory(Long merchantId) {
         return goodsMapper.countSalesByCategory(merchantId);
     }
 
+    /**
+     * 获取推荐商品
+     * @return List<Goods>
+     */
     public List<Goods> recommend() {
         return goodsMapper.getRecommend();
     }
 
+    /**
+     * 获取热销商品
+     * @return List<Goods>
+     */
     public List<Goods> sales() {
         return goodsMapper.sales();
     }
 
+    /**
+     * 获取所有商品
+     * @return List<Goods>
+     */
     public List<Goods> findAll() {
         return goodsMapper.findAll();
     }

@@ -17,6 +17,9 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
+/**
+ * 商品评论相关接口
+ */
 @RestController
 @RequestMapping("/api/comment")
 public class CommentController {
@@ -28,6 +31,10 @@ public class CommentController {
     @Resource
     private HttpServletRequest request;
 
+    /**
+     * 从token中获取当前登录用户信息
+     * @return User
+     */
     public User getUser() {
         String token = request.getHeader("token");
         if (token == null) return null;
@@ -35,6 +42,11 @@ public class CommentController {
         return userService.getOne(Wrappers.<User>lambdaQuery().eq(User::getUsername, username));
     }
 
+    /**
+     * 新增评论
+     * @param comment 评论信息
+     * @return Result
+     */
     @PostMapping
     public Result<?> save(@RequestBody Comment comment) {
         User user = getUser();
@@ -47,6 +59,11 @@ public class CommentController {
         return Result.success();
     }
 
+    /**
+     * 删除评论
+     * @param id 评论ID
+     * @return Result
+     */
     @DeleteMapping("/{id}")
     public Result<?> delete(@PathVariable Long id) {
         User user = getUser();
@@ -61,6 +78,11 @@ public class CommentController {
         return Result.success();
     }
 
+    /**
+     * 查询指定商品的所有评论（树形结构）
+     * @param goodsId 商品ID
+     * @return Result
+     */
     @GetMapping("/tree/{goodsId}")
     public Result<?> findTree(@PathVariable Long goodsId) {
         List<Comment> list = commentService.findByGoodsId(goodsId);

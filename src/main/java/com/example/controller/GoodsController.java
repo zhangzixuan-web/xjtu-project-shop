@@ -19,6 +19,9 @@ import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.util.List;
 
+/**
+ * 商品相关接口
+ */
 @RestController
 @RequestMapping("/api/goods")
 public class GoodsController {
@@ -29,42 +32,67 @@ public class GoodsController {
     @Resource
     private UserService userService;
 
-    // 保留这个方法，它是我们获取当前用户的关键
+    /**
+     * 从token中获取当前登录用户信息
+     * @return User
+     */
     public User getUser() {
         String token = request.getHeader("token");
         String username = JWT.decode(token).getAudience().get(0);
         return userService.getOne(Wrappers.<User>lambdaQuery().eq(User::getUsername, username));
     }
 
-    // =================  以下是管理员使用的接口, 基本保持不变  =================
+    /**
+     * 新增商品（管理员）
+     * @param goods 商品信息
+     * @return Result
+     */
     @PostMapping
     public Result<?> save(@RequestBody Goods goods) {
         goods.setCreateTime(DateUtil.now());
-        // 注意：这里的save方法也需要调整，以区分是管理员创建还是商家创建
-        // 为简单起见，我们假设此接口仅由管理员使用
         goodsService.save(goods);
         return Result.success();
     }
 
+    /**
+     * 更新商品（管理员）
+     * @param goods 商品信息
+     * @return Result
+     */
     @PutMapping
     public Result<?> update(@RequestBody Goods goods) {
         goodsService.updateById(goods);
         return Result.success();
     }
 
+    /**
+     * 删除商品（管理员）
+     * @param id 商品ID
+     * @return Result
+     */
     @DeleteMapping("/{id}")
     public Result<?> delete(@PathVariable Long id) {
         goodsService.removeById(id);
         return Result.success();
     }
 
+    /**
+     * 根据ID查询商品
+     * @param id 商品ID
+     * @return Result
+     */
     @GetMapping("/{id}")
     public Result<?> findById(@PathVariable Long id) {
         Goods goods = goodsService.getById(id);
+        // 计算商品的实际价格（原价 * 折扣）
         goods.setRealPrice(goods.getPrice().multiply(BigDecimal.valueOf(goods.getDiscount())));
         return Result.success(goods);
     }
 
+    /**
+     * 查询所有商品
+     * @return Result
+     */
     @GetMapping
     public Result<?> findAll() {
         List<Goods> list = goodsService.findAll();
@@ -72,8 +100,8 @@ public class GoodsController {
     }
 
     /**
-     * 推荐商品
-     * @return
+     * 查询推荐商品
+     * @return Result
      */
     @GetMapping("/recommend")
     public Result<?> recommend() {
@@ -82,8 +110,8 @@ public class GoodsController {
     }
 
     /**
-     * 推热销商品
-     * @return
+     * 查询热销商品
+     * @return Result
      */
     @GetMapping("/sales")
     public Result<?> sales() {
@@ -92,11 +120,11 @@ public class GoodsController {
     }
 
     /**
-     * 根据分类id查询商品
-     * @param id
-     * @param pageNum
-     * @param pageSize
-     * @return
+     * 根据分类ID分页查询商品
+     * @param id 分类ID
+     * @param pageNum 页码
+     * @param pageSize 每页数量
+     * @return Result
      */
     @GetMapping("/byCategory/{id}")
     public Result<?> findByCategory(@PathVariable Long id,
@@ -106,7 +134,13 @@ public class GoodsController {
         return Result.success(page);
     }
 
-    // 原有的管理员分页查询接口
+    /**
+     * 分页查询商品（管理员）
+     * @param name 商品名称（用于搜索）
+     * @param pageNum 页码
+     * @param pageSize 每页数量
+     * @return Result
+     */
     @GetMapping("/page")
     public Result<?> findPage(@RequestParam(required = false, defaultValue = "") String name,
                               @RequestParam(required = false, defaultValue = "1") Integer pageNum,

@@ -5,14 +5,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * @date 2021/3/24 12:44
- * @description mybatis-plus 分页插件
+ * Mybatis-Plus 配置类
+ * 用于配置 Mybatis-Plus 相关插件
  */
 @Configuration
 public class MybatisPlusConfig {
 
     /**
-     * 分页插件
+     * 配置 Mybatis-Plus 分页插件
+     *
+     * @return PaginationInterceptor 分页拦截器实例
      */
     @Bean
     public PaginationInterceptor paginationInterceptor() {

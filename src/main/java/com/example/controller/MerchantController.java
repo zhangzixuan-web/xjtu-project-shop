@@ -17,6 +17,9 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 商家相关接口
+ */
 @RestController
 @RequestMapping("/api/merchant")
 public class MerchantController {
@@ -28,6 +31,10 @@ public class MerchantController {
     @Resource
     private UserService userService;
 
+    /**
+     * 获取商家统计数据
+     * @return Result
+     */
     @GetMapping("/stats")
     public Result<?> getStats() {
         User currentUser = getUser();
@@ -38,6 +45,10 @@ public class MerchantController {
         return Result.success(stats);
     }
 
+    /**
+     * 获取按分类统计的销售数据
+     * @return Result
+     */
     @GetMapping("/stats/category")
     public Result<?> getStatsByCategory() {
         User currentUser = getUser();
@@ -48,6 +59,10 @@ public class MerchantController {
         return Result.success(categoryStats);
     }
 
+    /**
+     * 从token中获取当前登录用户信息
+     * @return User
+     */
     public User getUser() {
         String token = request.getHeader("token");
         if (token == null) return null;
@@ -55,6 +70,11 @@ public class MerchantController {
         return userService.getOne(Wrappers.<User>lambdaQuery().eq(User::getUsername, username));
     }
 
+    /**
+     * 商家新增商品
+     * @param goods 商品信息
+     * @return Result
+     */
     @PostMapping("/goods")
     public Result<?> saveForMerchant(@RequestBody Goods goods) {
         User currentUser = getUser();
@@ -66,6 +86,11 @@ public class MerchantController {
         return Result.success();
     }
 
+    /**
+     * 商家更新商品
+     * @param goods 商品信息
+     * @return Result
+     */
     @PutMapping("/goods")
     public Result<?> updateForMerchant(@RequestBody Goods goods) {
         User currentUser = getUser();
@@ -76,6 +101,11 @@ public class MerchantController {
         return Result.success();
     }
 
+    /**
+     * 商家删除商品
+     * @param id 商品ID
+     * @return Result
+     */
     @DeleteMapping("/goods/{id}")
     public Result<?> deleteForMerchant(@PathVariable Long id) {
         User currentUser = getUser();
@@ -86,6 +116,13 @@ public class MerchantController {
         return Result.success();
     }
 
+    /**
+     * 分页查询商家的商品
+     * @param name 商品名称（用于搜索）
+     * @param pageNum 页码
+     * @param pageSize 每页数量
+     * @return Result
+     */
     @GetMapping("/goods/page")
     public Result<?> findMerchantPage(@RequestParam(required = false, defaultValue = "") String name,
                                       @RequestParam(required = false, defaultValue = "1") Integer pageNum,

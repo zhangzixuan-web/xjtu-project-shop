@@ -7,6 +7,12 @@ import com.baomidou.mybatisplus.extension.activerecord.Model;
 import com.baomidou.mybatisplus.annotation.TableId;
 
 
+/**
+ * 商品收藏实体类
+ * <p>
+ * 对应数据库中的 `collect` 表。
+ * </p>
+ */
 @Data
 @TableName("collect")
 public class Collect extends Model<Collect> {
@@ -17,27 +23,27 @@ public class Collect extends Model<Collect> {
     private Long id;
 
     /**
-      * 商品名称 
+      * 商品名称 (冗余字段，用于提高查询性能)
       */
     private String goodsName;
 
     /**
-      * 商品图片 
+      * 商品图片 (冗余字段，用于提高查询性能)
       */
     private String goodsImg;
 
     /**
-      * 商品id 
+      * 商品ID
       */
     private String goodsId;
 
     /**
-      * 用户id 
+      * 用户ID
       */
     private String userId;
 
     /**
-      * 收藏时间 
+      * 收藏时间
       */
     private String createTime;
 
