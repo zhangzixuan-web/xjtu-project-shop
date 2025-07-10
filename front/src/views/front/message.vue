@@ -7,7 +7,7 @@
           <div style="text-align: right; padding: 10px"><el-button type="primary" @click="save">留言</el-button></div>
         </div>
       </div>
-
+  
       <div style="display: flex; padding: 20px" v-for="item in messages">
         <div style="text-align: center; flex: 1">
           <el-image :src="item.avatar" style="width: 60px; height: 60px; border-radius: 50%"></el-image>
